@@ -14,6 +14,18 @@ GeneralServer::GeneralServer(uint16_t port, QObject *parent) : QObject(parent)
     }
 }
 
+GeneralServer::GeneralServer(QObject *parent) : QObject(parent)
+{
+    tcpServer = new QTcpServer();
+    connect(tcpServer, SIGNAL(newConnection()), this, SLOT(handleConnection));
+    qDebug() << "Don't forget to start the server!";
+}
+
+bool GeneralServer::Start(uint16_t port)
+{
+    return tcpServer->listen(QHostAddress::Any, port);
+}
+
 void GeneralServer::handleConnection()
 {
     QTcpSocket *client = tcpServer->nextPendingConnection();
@@ -25,5 +37,7 @@ void GeneralServer::handleConnection()
 
 void GeneralServer:: readClient()
 {
-
+    QTcpSocket *sender = static_cast<QTcpSocket*>(QObject::sender());
+    QByteArray message = sender->readAll();
+    printf("%s\n", message.toStdString().c_str());
 }

@@ -11,6 +11,8 @@ class GeneralServer : public QObject
     Q_OBJECT
 public:
     explicit GeneralServer(uint16_t port, QObject *parent = nullptr);
+    explicit GeneralServer(QObject *parent = nullptr);
+    bool Start(uint16_t port);
 
 signals:
 
