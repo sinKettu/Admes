@@ -1,6 +1,7 @@
 QT -= gui
+QT += network
 
-CONFIG += c++11 console network
+CONFIG += c++11 console
 CONFIG -= app_bundle
 
 # The following define makes your compiler emit warnings if you use
@@ -16,7 +17,6 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
         main.cpp \
-    generalserver.cpp \
     person.cpp
 
 # Default rules for deployment.
@@ -25,5 +25,4 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 HEADERS += \
-    generalserver.h \
     person.h

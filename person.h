@@ -2,27 +2,35 @@
 #define PERSON_H
 
 #include <QObject>
-#include <QtNetwork/QTcpSocket>
+#include <QTcpSocket>
+#include <QTcpServer>
 
 class Person : public QObject
 {
     Q_OBJECT
 public:
     explicit Person(QObject *parent = nullptr);
-    int commandConnect(QString address, qint16 port);
+    int commandOpen(quint16 port);
+    int commandConnect(QString address, quint16 port);
     int commandDisconnect();
     int commandSend();
 
 signals:
 
 private slots:
-    void ReadData();
-    void Connected();
-    void Disconnected();
-    void HandleError();
+    //void ReadData();
+    //void Connected();
+    //void Disconnected();
+    //void HandleError();
+    void NewServerConnection();
+    void NewSocketConnection();
+    void ReadDataFromSocket();
+    void SocketDisconnected();
+    void HandleSocketError(QAbstractSocket::SocketError e);
 
 private:
-    QTcpSocket *socket = nullptr;
+    QTcpServer *Server = nullptr;
+    QMap<qint64, QTcpSocket*> Sockets;
 };
 
 #endif // PERSON_H
