@@ -12,8 +12,9 @@ public:
     explicit Person(QObject *parent = nullptr);
     int commandOpen(quint16 port);
     int commandConnect(QString address, quint16 port);
-    int commandDisconnect();
-    int commandSend();
+    int commandDisconnectAll();
+    int commandSend(QString message);
+    int commandRead();
 
 signals:
 
@@ -31,6 +32,7 @@ private slots:
 private:
     QTcpServer *Server = nullptr;
     QMap<qint64, QTcpSocket*> Sockets;
+    QStringList InputMessages;
 };
 
 #endif // PERSON_H
