@@ -5,7 +5,7 @@ Server::Server(QObject *parent) : QObject(parent)
 {
     ConnectionReceiver = new QTcpServer();
     connect(ConnectionReceiver, SIGNAL(newConnection()), this, SLOT(HandleConnection()));
-    connect(this, SIGNAL(NewSocketForParrent(qint64)), this->parent(), SLOT(NewSocketFromServer(qint64)));
+    connect(this, SIGNAL(NewSocketForParrent(qint64)), (Person*)this->parent(), SLOT(NewSocket(qint64)));
 }
 
 void Server::Start(quint16 port)

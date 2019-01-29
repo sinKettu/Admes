@@ -8,7 +8,7 @@ Person::Person(QObject *parent) : QObject(parent)
 
 }
 
-void Person::NewSocketFromServer(qint64 id)
+void Person::NewSocket(qint64 id)
 {
     qDebug() << "[ DEBUG ] Person knows about socket " << id;
 
@@ -59,3 +59,57 @@ void Person::StopServer()
     emit(StopServerThreadSignal());
 }
 
+void Person::SendMessage(qint64 id, QString message)
+{
+    emit(SendMessageSignal(id, message));
+}
+
+void Person::Connect(QString address, quint16 port)
+{
+    qDebug() << "[ DEBUG ] Trying to connect";
+
+    QTcpSocket *socket = new QTcpSocket();
+    socket->connectToHost(address, port);
+
+    if (!socket->waitForConnected(5000))
+    {
+        qDebug() << "[ DEBUG ] Fail.";
+    }
+    else
+    {
+        qDebug() << "[ DEBUG ] Success.";
+        qint64 id = socket->socketDescriptor();
+        Sockets.insert(id, socket);
+        socket = nullptr;
+        delete socket;
+        NewSocket(id);
+    }
+}
+
+void Person::MessageReceiver(qint64 id, QString message)
+{
+    qDebug() << "[ DEBUG ] Person got message from socket " << id;
+    post.push_back(QString::number(id));
+    post.push_back(message);
+}
+
+void Person::CheckMessages()
+{
+    if (post.isEmpty())
+    {
+        qDebug() << "[ DEBUG ] No messages!";
+    }
+    else
+    {
+        qDebug() << "[ DEBUG ] There is messages!";
+
+        while (!post.isEmpty())
+        {
+            printf("Message from: [%s]\n", post[0].toStdString().c_str());
+            printf("%s\n", post[1].toStdString().c_str());
+
+            post.removeFirst();
+            post.removeFirst();
+        }
+    }
+}

@@ -22,27 +22,31 @@ int main(int argc, char *argv[])
         QStringList commands = input.split(' ');
         if (commands[0].compare("/open") == 0)
         {
-            person->commandOpen(commands[1].toUShort());
+            person->StartServer(commands[1].toUShort());
+            //person->commandOpen(commands[1].toUShort());
             continue;
         }
         if (commands[0].compare("/connect") == 0)
         {
-            person->commandConnect(commands[1], commands[2].toUShort());
+            person->Connect(commands[1], commands[2].toUShort());
+            //person->commandConnect(commands[1], commands[2].toUShort());
             continue;
         }
         if (commands[0].compare("/disconnect") == 0)
         {
-            person->commandDisconnectAll();
+            //person->commandDisconnectAll();
             break;
         }
         if (commands[0].compare("/send") == 0)
         {
-            person->commandSend(commands[1]);
+            person->SendMessage(commands[1].toUShort(), commands[2]);
+          //  person->commandSend(commands[1]);
             continue;
         }
         if (commands[0].compare("/read") == 0)
         {
-            person->commandRead();
+            person->CheckMessages();
+            //person->commandRead();
             continue;
         }
 

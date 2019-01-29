@@ -12,7 +12,7 @@ public:
     void Wait(quint32 ms);
 
 signals:
-    void TakeTheMessage(QString message);
+    void TakeTheMessage(qint64, QString);
 
 public slots:
     void SendMessageSlot(qint64 id, QString message);
