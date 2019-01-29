@@ -18,15 +18,19 @@ public:
 
 signals:
     void StopServerThreadSignal();
+    void SendMessageSignal(qint64, QString);
 
 public slots:
     void NewSocketFromServer(qint64 id);
+    void MessageReceiver(QString message);
 
 private slots:
     void StartServerSlot();
+    void StartListenToSocketSlot();
 
 private:
     quint16 portForServer = 0;
+    qint64 nextSocket = 0;
 };
 
 #endif // PERSON_H
