@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QTcpSocket>
 #include <QTcpServer>
+#include <QThread>
 
 class Person : public QObject
 {
@@ -17,22 +18,26 @@ public:
     int commandRead();
 
 signals:
+    void InitWaitingForReadData();
+    void StopServer();
 
 private slots:
-    //void ReadData();
-    //void Connected();
-    //void Disconnected();
-    //void HandleError();
     void NewServerConnection();
     void NewSocketConnection();
     void ReadDataFromSocket();
     void SocketDisconnected();
     void HandleSocketError(QAbstractSocket::SocketError e);
+    void WaitForReadDataFromSocket();
+    void WaitForConnection();
+    void ServerListening();
 
 private:
     QTcpServer *Server = nullptr;
     QMap<qint64, QTcpSocket*> Sockets;
     QStringList InputMessages;
+    QList<QThread *> threadPool;
+    QList<QTcpSocket *> socketStack;
+    bool socketStackInUse = false;
 };
 
 #endif // PERSON_H
