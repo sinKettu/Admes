@@ -4,8 +4,9 @@
 #include <stdio.h>
 #include "person.h"
 
-int main(/*int argc, char *argv[]*/)
+int main(int argc, char *argv[])
 {
+    QCoreApplication a(argc, argv);
     QTextStream qout(stdout);
     QTextStream qin(stdin);
    // char* buffer = new char[256];
@@ -48,5 +49,5 @@ int main(/*int argc, char *argv[]*/)
         printf("Wrong command!!!\n");
     }
 
-    return 0;
+    return a.exec();
 }

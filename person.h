@@ -10,34 +10,23 @@ class Person : public QObject
 {
     Q_OBJECT
 public:
+    QMap<qint64, QTcpSocket *> Sockets;
     explicit Person(QObject *parent = nullptr);
-    int commandOpen(quint16 port);
-    int commandConnect(QString address, quint16 port);
-    int commandDisconnectAll();
-    int commandSend(QString message);
-    int commandRead();
+    void StartServer(quint16 port);
+    void StopServer();
+    //void CloseConnection(qint64 id);
 
 signals:
-    void InitWaitingForReadData();
-    void StopServer();
+    void StopServerThreadSignal();
+
+public slots:
+    void NewSocketFromServer(qint64 id);
 
 private slots:
-    void NewServerConnection();
-    void NewSocketConnection();
-    void ReadDataFromSocket();
-    void SocketDisconnected();
-    void HandleSocketError(QAbstractSocket::SocketError e);
-    void WaitForReadDataFromSocket();
-    void WaitForConnection();
-    void ServerListening();
+    void StartServerSlot();
 
 private:
-    QTcpServer *Server = nullptr;
-    QMap<qint64, QTcpSocket*> Sockets;
-    QStringList InputMessages;
-    QList<QThread *> threadPool;
-    QList<QTcpSocket *> socketStack;
-    bool socketStackInUse = false;
+    quint16 portForServer = 0;
 };
 
 #endif // PERSON_H
