@@ -17,7 +17,7 @@ void Person::StartServer(quint16 port)
     // connect -- запуск сервера в потоке
     connect(thread, SIGNAL(started()), server, SLOT(StartListening()));
     // connect -- появляется соединение, ссылку сюда
-    connect(server, SIGNAL(sigSendSocket(QTcpSocket *)), this, SLOT(slotReceiveNewConnection(QTcpSocket *)));
+    connect(server, SIGNAL(sigSendSocket(QTcpSocket *)), this, SLOT(slotReceiveNewConnection(QTcpSocket *)), Qt::DirectConnection);
     // connect -- сигнал на завершение, сервер выключается, поток заканчивается
     connect(this, SIGNAL(sigStopServer()), server, SLOT(slotStop()));
     connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
@@ -36,9 +36,9 @@ void Person::slotReceiveNewConnection(QTcpSocket *soc)
     // connect -- запуск сокета в потоке
     connect(thread, SIGNAL(started()), dialog, SLOT(WaitForReadable()));
     // connect -- копирование принятых сообщений сюда
-    connect(dialog, SIGNAL(sigReturnMessage(qint64, QString)), this, SLOT(slotReceiveMessage(qint64, QString)));
+    connect(dialog, SIGNAL(sigReturnMessage(qint64, QString)), this, SLOT(slotReceiveMessage(qint64, QString)), Qt::DirectConnection);
     // connect -- отправка сообщений отсюда
-    connect(this, SIGNAL(sigSendMessage(qint64, const char*)), dialog, SLOT(slotWriteMessage(qint64, const char*)));
+    connect(this, SIGNAL(sigSendMessage(qint64, const char*)), dialog, SLOT(slotWriteMessage(qint64, const char*)), Qt::DirectConnection);
     // connect -- завершение
     connect(this, SIGNAL(sigCloseDialog(qint64)), dialog, SLOT(CloseDialog(qint64)));
     connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
@@ -73,9 +73,9 @@ void Person::slotSocketConnected()
     // connect -- запуск сокета в потоке
     connect(thread, SIGNAL(started()), dialog, SLOT(WaitForReadable()));
     // connect -- копирование принятых сообщений сюда
-    connect(dialog, SIGNAL(sigReturnMessage(qint64, QString)), this, SLOT(slotReceiveMessage(qint64, QString)));
+    connect(dialog, SIGNAL(sigReturnMessage(qint64, QString)), this, SLOT(slotReceiveMessage(qint64, QString)), Qt::DirectConnection);
     // connect -- отправка сообщений отсюда
-    connect(this, SIGNAL(sigSendMessage(qint64, const char*)), dialog, SLOT(slotWriteMessage(qint64, const char*)));
+    connect(this, SIGNAL(sigSendMessage(qint64, const char*)), dialog, SLOT(slotWriteMessage(qint64, const char*)), Qt::DirectConnection);
     // connect -- завершение
     connect(this, SIGNAL(sigCloseDialog(qint64)), dialog, SLOT(CloseDialog(qint64)));
     connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));

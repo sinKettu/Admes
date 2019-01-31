@@ -45,10 +45,10 @@ void Server::slotHandleConnection()
 
     emit(sigSendSocket(newOne));
 
-    newOne = nullptr;
+   /* newOne = nullptr;
     delete newOne;
     ServerSender = nullptr;
-    delete ServerSender;
+    delete ServerSender;*/
 }
 
 void Server::slotStop()
