@@ -1,6 +1,6 @@
 #include "person.h"
 #include "server.h"
-#include "socket.h"
+#include "dialog.h"
 #include <QThread>
 
 Person::Person(QObject *parent) : QObject(parent)
@@ -8,108 +8,104 @@ Person::Person(QObject *parent) : QObject(parent)
 
 }
 
-void Person::NewSocket(qint64 id)
-{
-    qDebug() << "[ DEBUG ] Person knows about socket " << id;
-
-    QThread *socketThread = new QThread();
-    nextSocket = id;
-
-    connect(socketThread, SIGNAL(started()), this, SLOT(StartListenToSocketSlot()));
-    connect(Sockets[id], SIGNAL(disconnected()), socketThread, SLOT(quit()));
-
-    socketThread->start();
-}
-
-void Person::StartListenToSocketSlot()
-{
-    qDebug() << "[ DEBUG ] Socket's thread is started.";
-    Socket *socket = new Socket(&Sockets[nextSocket], this);
-    nextSocket = 0;
-    socket->Wait(1000);
-}
-
 void Person::StartServer(quint16 port)
 {
-    QThread *serverThread = new QThread();
-    portForServer = port;
-    // Нужно куда-то записать порт
-    connect(serverThread, SIGNAL(started()), this, SLOT(StartServerSlot()));
-    connect(this, SIGNAL(StopServerThreadSignal()), serverThread, SLOT(quit()));
+    Server *server = new Server(port);
+    QThread *thread = new QThread();
+    server->moveToThread(thread);
 
-    serverThread->start();
+    // connect -- запуск сервера в потоке
+    connect(thread, SIGNAL(started()), server, SLOT(StartListening()));
+    // connect -- появляется соединение, ссылку сюда
+    connect(server, SIGNAL(sigSendSocket(QTcpSocket *)), this, SLOT(slotReceiveNewConnection(QTcpSocket *)));
+    // connect -- сигнал на завершение, сервер выключается, поток заканчивается
+    connect(this, SIGNAL(sigStopServer()), server, SLOT(slotStop()));
+    connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
+
+    thread->start();
 }
 
-void Person::StartServerSlot()
+void Person::slotReceiveNewConnection(QTcpSocket *soc)
 {
-    qDebug() << "[ DEBUG ] Server's thread is started.";
+    qDebug() << "==>\tPerson: Got new socket - " << soc->socketDescriptor();
 
-    Server *server = new Server(this);
-    // проверить значение portForServer
-    // не уверен, что такой connect корректен
-    connect(QThread::currentThread(), SIGNAL(finished()), server, SLOT(ShutDownSLot()));
-    server->Start(portForServer);
-    portForServer = 0;
+    Dialog *dialog = new Dialog(soc);
+    QThread *thread = new QThread();
+    dialog->moveToThread(thread);
+
+    // connect -- запуск сокета в потоке
+    connect(thread, SIGNAL(started()), dialog, SLOT(WaitForReadable()));
+    // connect -- копирование принятых сообщений сюда
+    connect(dialog, SIGNAL(sigReturnMessage(qint64, QString)), this, SLOT(slotReceiveMessage(qint64, QString)));
+    // connect -- отправка сообщений отсюда
+    connect(this, SIGNAL(sigSendMessage(qint64, const char*)), dialog, SLOT(slotWriteMessage(qint64, const char*)));
+    // connect -- завершение
+    connect(this, SIGNAL(sigCloseDialog(qint64)), dialog, SLOT(CloseDialog(qint64)));
+    connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
+
+    thread->start();
+
+    //soc = nullptr; ???
 }
 
-void Person::StopServer()
+void Person::slotReceiveMessage(qint64 id, QString message)
 {
-    qDebug() << "[ DEBUG ] Stopping server.";
+    messageStorage.push_back(message);
+    messageStorage.push_back(QString::number(id));
+}
 
-    emit(StopServerThreadSignal());
+void Person::CreateDialog(QString address, quint16 port)
+{
+    outcommingSocket = new QTcpSocket();
+    connect(outcommingSocket, SIGNAL(connected()), this, SLOT(slotSocketConnected()));
+    outcommingSocket->connectToHost(address, port);
+    while(!outcommingSocket->waitForConnected(100));
+}
+
+void Person::slotSocketConnected()
+{
+    qDebug() << "==>\tPerson: Outcomming connection!";
+
+    Dialog *dialog = new Dialog(outcommingSocket);
+    QThread *thread = new QThread();
+    dialog->moveToThread(thread);
+
+    // connect -- запуск сокета в потоке
+    connect(thread, SIGNAL(started()), dialog, SLOT(WaitForReadable()));
+    // connect -- копирование принятых сообщений сюда
+    connect(dialog, SIGNAL(sigReturnMessage(qint64, QString)), this, SLOT(slotReceiveMessage(qint64, QString)));
+    // connect -- отправка сообщений отсюда
+    connect(this, SIGNAL(sigSendMessage(qint64, const char*)), dialog, SLOT(slotWriteMessage(qint64, const char*)));
+    // connect -- завершение
+    connect(this, SIGNAL(sigCloseDialog(qint64)), dialog, SLOT(CloseDialog(qint64)));
+    connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
+
+    thread->start();
+
+    //outcommingSocket = nullptr; ???
 }
 
 void Person::SendMessage(qint64 id, QString message)
 {
-    emit(SendMessageSignal(id, message));
+    qDebug() << "==>\tPerson: sending message to" << id;
+
+    emit(sigSendMessage(id, message.toStdString().c_str()));
 }
 
-void Person::Connect(QString address, quint16 port)
+void Person::ReadAllPost()
 {
-    qDebug() << "[ DEBUG ] Trying to connect";
-
-    QTcpSocket *socket = new QTcpSocket();
-    socket->connectToHost(address, port);
-
-    if (!socket->waitForConnected(5000))
+    if (messageStorage.isEmpty())
     {
-        qDebug() << "[ DEBUG ] Fail.";
+        qDebug() << "==>\tPerson: nothing to read";
     }
     else
     {
-        qDebug() << "[ DEBUG ] Success.";
-        qint64 id = socket->socketDescriptor();
-        Sockets.insert(id, socket);
-        socket = nullptr;
-        delete socket;
-        NewSocket(id);
-    }
-}
-
-void Person::MessageReceiver(qint64 id, QString message)
-{
-    qDebug() << "[ DEBUG ] Person got message from socket " << id;
-    post.push_back(QString::number(id));
-    post.push_back(message);
-}
-
-void Person::CheckMessages()
-{
-    if (post.isEmpty())
-    {
-        qDebug() << "[ DEBUG ] No messages!";
-    }
-    else
-    {
-        qDebug() << "[ DEBUG ] There is messages!";
-
-        while (!post.isEmpty())
+        while (!messageStorage.isEmpty())
         {
-            printf("Message from: [%s]\n", post[0].toStdString().c_str());
-            printf("%s\n", post[1].toStdString().c_str());
-
-            post.removeFirst();
-            post.removeFirst();
+            printf("[%s]\n:", messageStorage.last().toStdString().c_str());
+            messageStorage.pop_back();
+            printf("%s\n\n", messageStorage.last().toStdString().c_str());
+            messageStorage.pop_back();
         }
     }
 }

@@ -1,49 +1,57 @@
 #include "server.h"
-#include "person.h"
+#include <QTcpServer>
+#include <QTcpSocket>
 
-Server::Server(QObject *parent) : QObject(parent)
+Server::Server(quint16 portToListen, QObject *parent) : QObject(parent)
 {
-    ConnectionReceiver = new QTcpServer();
-    connect(ConnectionReceiver, SIGNAL(newConnection()), this, SLOT(HandleConnection()));
-    connect(this, SIGNAL(NewSocketForParrent(qint64)), (Person*)this->parent(), SLOT(NewSocket(qint64)));
+    port = portToListen;
 }
 
-void Server::Start(quint16 port)
+void Server::StartListening()
 {
-    if (!ConnectionReceiver->listen(QHostAddress::Any, port))
+    qDebug() << "==>\tServer: Trying to set server up.";
+
+    QTcpServer *tcpServer = new QTcpServer();
+    connect(tcpServer, SIGNAL(newConnection()), this, SLOT(slotHandleConnection())); //!!!
+    // connect -- отлов ошибок
+
+    if (!tcpServer->listen(QHostAddress::Any, port))
     {
-        qDebug() << "[ DEBUG ] Server was not started.";
+        qDebug() << "==>\tServer: Fail.";
     }
     else
     {
-        while (continueListening)    // Заменить true на что-то поудачнее
+        qDebug() << "==>\tServer: Success.";
+
+        serverIsUp = true;
+        while (serverIsUp)
         {
-            qDebug() << "[ DEBUG ] Server is listening for connections.";
-            while (!ConnectionReceiver->waitForNewConnection(1000));
-            qDebug() << "[ DEBUG ] New Connection";
+            tcpServer->waitForNewConnection(1000);
         }
     }
+
+    qDebug() << "==>\tServer: Stopping.";
+
+    tcpServer->close();
+    delete tcpServer;
 }
 
-void Server::HandleConnection()
+void Server::slotHandleConnection()
 {
-    QTcpSocket *socket = ConnectionReceiver->nextPendingConnection();
-    qint64 id = socket->socketDescriptor();
+    QTcpServer *ServerSender = reinterpret_cast<QTcpServer *>(QObject::sender());
+    QTcpSocket *newOne = ServerSender->nextPendingConnection();
 
-    qDebug() << "[ DEBUG ] socket " << id << " was handled.";
+    qDebug() << "==>\tServer: Handle new connection: " << newOne->socketDescriptor();
 
-    ((Person *)this->parent())->Sockets.insert(id, socket);
+    emit(sigSendSocket(newOne));
 
-    socket = nullptr;
-    delete socket;
-
-    emit(NewSocketForParrent(id));
+    newOne = nullptr;
+    delete newOne;
+    ServerSender = nullptr;
+    delete ServerSender;
 }
 
-void Server::ShutDownSlot()
+void Server::slotStop()
 {
-    qDebug() << "[ DEBUG ] Server received signal to stop.";
-
-    continueListening = false;
-    ConnectionReceiver->close();
+    serverIsUp = false;
 }

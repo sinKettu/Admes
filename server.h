@@ -1,29 +1,28 @@
+#pragma once
+
 #ifndef SERVER_H
 #define SERVER_H
 
 #include <QObject>
-#include <QTcpServer>
 #include <QTcpSocket>
 
 class Server : public QObject
 {
     Q_OBJECT
 public:
-    explicit Server(QObject *parent = nullptr);
-    void Start(quint16 port);
+    explicit Server(quint16 portToListen, QObject *parent = nullptr);
 
 signals:
-    void NewSocketForParrent(qint64);
-
-private slots:
-    void HandleConnection();
+    void sigSendSocket(QTcpSocket *);
 
 public slots:
-    void ShutDownSlot();
+    void StartListening();
+    void slotStop();
+    void slotHandleConnection();
 
 private:
-    QTcpServer *ConnectionReceiver = nullptr;
-    bool continueListening = true;
+    quint16 port = 0;
+    bool serverIsUp = false;
 };
 
 #endif // SERVER_H

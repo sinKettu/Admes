@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
         }
         if (commands[0].compare("/connect") == 0)
         {
-            person->Connect(commands[1], commands[2].toUShort());
+            person->CreateDialog(commands[1], commands[2].toUShort());
             //person->commandConnect(commands[1], commands[2].toUShort());
             continue;
         }
@@ -39,13 +39,13 @@ int main(int argc, char *argv[])
         }
         if (commands[0].compare("/send") == 0)
         {
-            person->SendMessage(commands[1].toUShort(), commands[2]);
+            person->SendMessage(commands[1].toLongLong(), commands[2]);
           //  person->commandSend(commands[1]);
             continue;
         }
         if (commands[0].compare("/read") == 0)
         {
-            person->CheckMessages();
+            person->ReadAllPost();
             //person->commandRead();
             continue;
         }

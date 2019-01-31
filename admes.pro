@@ -19,7 +19,7 @@ SOURCES += \
         main.cpp \
     person.cpp \
     server.cpp \
-    socket.cpp \
+    dialog.cpp
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -29,4 +29,4 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 HEADERS += \
     person.h \
     server.h \
-    socket.h \
+    dialog.h

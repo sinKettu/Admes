@@ -1,40 +1,34 @@
+#pragma once
+
 #ifndef PERSON_H
 #define PERSON_H
 
 #include <QObject>
 #include <QTcpSocket>
-#include <QTcpServer>
-#include <QThread>
 
 class Person : public QObject
 {
     Q_OBJECT
 public:
-    QMap<qint64, QTcpSocket *> Sockets;
     explicit Person(QObject *parent = nullptr);
     void StartServer(quint16 port);
-    void StopServer();
+    void CreateDialog(QString address, quint16 port);
     void SendMessage(qint64 id, QString message);
-    void Connect(QString address, quint16 port);
-    void CheckMessages();
-    //void CloseConnection(qint64 id);
+    void ReadAllPost();
 
 signals:
-    void StopServerThreadSignal();
-    void SendMessageSignal(qint64, QString);
+    void sigStopServer();
+    void sigSendMessage(qint64, const char*);
+    void sigCloseDialog(qint64);
 
 public slots:
-    void NewSocket(qint64 id);
-    void MessageReceiver(qint64 id, QString message);
-
-private slots:
-    void StartServerSlot();
-    void StartListenToSocketSlot();
+    void slotReceiveNewConnection(QTcpSocket *);
+    void slotReceiveMessage(qint64 id, QString message);
+    void slotSocketConnected();
 
 private:
-    quint16 portForServer = 0;
-    qint64 nextSocket = 0;
-    QStringList post;
+    QStringList messageStorage;
+    QTcpSocket *outcommingSocket = nullptr;
 };
 
 #endif // PERSON_H
