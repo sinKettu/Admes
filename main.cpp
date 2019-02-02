@@ -2,7 +2,8 @@
 #include <QString>
 #include <QTextStream>
 #include <stdio.h>
-#include "person.h"
+//#include "test.h"
+#include "control.h"
 
 int main(int argc, char *argv[])
 {
@@ -11,7 +12,8 @@ int main(int argc, char *argv[])
     QTextStream qin(stdin);
    // char* buffer = new char[256];
     QString input;
-    Person *person = new Person();
+    Control *c = new Control();
+    //Test *t = new Test();
 
     while (true)
     {
@@ -22,13 +24,15 @@ int main(int argc, char *argv[])
         QStringList commands = input.split(' ');
         if (commands[0].compare("/open") == 0)
         {
-            person->StartServer(commands[1].toUShort());
+            c->StartServer(commands[1].toUShort());
+           // t->StartServer(commands[1].toUShort());
             //person->commandOpen(commands[1].toUShort());
             continue;
         }
         if (commands[0].compare("/connect") == 0)
         {
-            person->CreateDialog(commands[1], commands[2].toUShort());
+            c->ConnectTo(commands[1], commands[2].toUShort());
+            //t->Connect(commands[1], commands[2].toUShort());
             //person->commandConnect(commands[1], commands[2].toUShort());
             continue;
         }
@@ -39,13 +43,15 @@ int main(int argc, char *argv[])
         }
         if (commands[0].compare("/send") == 0)
         {
-            person->SendMessage(commands[1].toLongLong(), commands[2]);
+            c->Send(commands[1].toLongLong(), commands[2]);
+            //t->Send(commands[1].toLongLong(), commands[2]);
           //  person->commandSend(commands[1]);
             continue;
         }
         if (commands[0].compare("/read") == 0)
         {
-            person->ReadAllPost();
+            c->ReadAll();
+            //t->Read();
             //person->commandRead();
             continue;
         }

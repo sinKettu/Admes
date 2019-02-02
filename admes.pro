@@ -1,5 +1,5 @@
 QT -= gui
-QT += network
+QT += network core
 
 CONFIG += c++11 console
 CONFIG -= app_bundle
@@ -17,9 +17,8 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
         main.cpp \
-    person.cpp \
-    server.cpp \
-    dialog.cpp
+    control.cpp \
+    connection.cpp
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -27,6 +26,5 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 HEADERS += \
-    person.h \
-    server.h \
-    dialog.h
+    control.h \
+    connection.h
