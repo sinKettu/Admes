@@ -12,12 +12,14 @@ public:
     void ReadAll();
     void Send(qint64 id, QString message);
     void ConnectTo(QString adr, quint16 port);
+    void Disconnect(qint64 id);
 
 signals:
     void sigStartServer(quint16);
     void sigReadAll();
     void sigWrite(qint64, QString);
     void sigConnect(QString, quint16);
+    void sigDisconnect(qint64);
 
 public slots:
 };

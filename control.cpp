@@ -14,6 +14,7 @@ Control::Control(QObject *parent) : QObject(parent)
     connect(this, SIGNAL(sigConnect(QString, quint16)), connection, SLOT(slotConnect(QString, quint16)));
     connect(this, SIGNAL(sigWrite(qint64, QString)),    connection, SLOT(slotWrite(qint64, QString)));
     connect(this, SIGNAL(sigReadAll()),                 connection, SLOT(slotReadIncomming()));
+    connect(this, SIGNAL(sigDisconnect(qint64)),        connection, SLOT(slotDisconnect(qint64)));
 
     thread->start();
 }
@@ -38,3 +39,7 @@ void Control::ReadAll()
     emit sigReadAll();
 }
 
+void Control::Disconnect(qint64 id)
+{
+    emit sigDisconnect(id);
+}

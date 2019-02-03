@@ -32,7 +32,8 @@ int main(int argc, char *argv[])
         }
         if (commands[0].compare("/disconnect") == 0)
         {
-            break;
+            c->Disconnect(commands[1].toLongLong());
+            continue;
         }
         if (commands[0].compare("/send") == 0)
         {

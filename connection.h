@@ -23,6 +23,8 @@ public slots:
     void slotConnectSuccess();
     void slotWrite(qint64 id, QString message);
     void slotReadIncomming();
+    void slotDisconnect(qint64);
+    void slotDisconnectWarning();
 
 private:
     QEventLoop *loop = nullptr;
