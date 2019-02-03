@@ -9,10 +9,11 @@ Control::Control(QObject *parent) : QObject(parent)
     connection->moveToThread(thread);
 
     connect(thread, SIGNAL(started()), connection, SLOT(slotConnectionExec()));
-    connect(this, SIGNAL(sigStartServer(quint16)), connection, SLOT(slotStartServer(quint16)));
+
+    connect(this, SIGNAL(sigStartServer(quint16)),      connection, SLOT(slotStartServer(quint16)));
     connect(this, SIGNAL(sigConnect(QString, quint16)), connection, SLOT(slotConnect(QString, quint16)));
-    connect(this, SIGNAL(sigWrite(qint64, QString)), connection, SLOT(slotWrite(qint64, QString)));
-    connect(this, SIGNAL(sigReadAll()), connection, SLOT(slotReadIncomming()));
+    connect(this, SIGNAL(sigWrite(qint64, QString)),    connection, SLOT(slotWrite(qint64, QString)));
+    connect(this, SIGNAL(sigReadAll()),                 connection, SLOT(slotReadIncomming()));
 
     thread->start();
 }
