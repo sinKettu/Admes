@@ -3,8 +3,6 @@
 Connection::Connection(QObject *parent) : QObject(parent)
 {
 
-
-    // connect на закрытие
 }
 
 void Connection::slotConnectionExec()
@@ -30,10 +28,11 @@ void Connection::slotStartServer(quint16 port)
 
 void Connection::slotNewConnection()
 {
-    qDebug() << "New Conncetion!";
     QTcpSocket *tmp = server->nextPendingConnection();
     qint64 id = tmp->socketDescriptor();
     socketMap.insert(id, tmp);
+
+    qDebug() << "New Conncetion: " << id;
 
     connect(socketMap[id], SIGNAL(readyRead()), this, SLOT(slotRead()));
     connect(socketMap[id], SIGNAL(disconnected()), socketMap[id], SLOT(deleteLater()));
