@@ -5,10 +5,10 @@
 Control::Control(QObject *parent) : QObject(parent)
 {
     Connection *connection = new Connection();
-    QThread *thread = new QThread();
+    QThread    *thread     = new QThread();
     connection->moveToThread(thread);
 
-    connect(thread, SIGNAL(started()), connection, SLOT(slotConnectionExec()));
+    connect(thread, SIGNAL(started()),                  connection, SLOT(slotConnectionExec()));
 
     connect(this, SIGNAL(sigStartServer(quint16)),      connection, SLOT(slotStartServer(quint16)));
     connect(this, SIGNAL(sigConnect(QString, quint16)), connection, SLOT(slotConnect(QString, quint16)));

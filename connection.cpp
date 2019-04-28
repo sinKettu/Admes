@@ -42,7 +42,6 @@ void Connection::slotNewConnection()
     connect(socketMap[id], SIGNAL(disconnected()), socketMap[id], SLOT(deleteLater()));
 
     tmp = nullptr;
-    delete tmp;
 }
 
 void Connection::slotRead()
@@ -56,7 +55,6 @@ void Connection::slotRead()
     storage.push_back(QString::number(id));
 
     soc = nullptr;
-    delete soc;
 }
 
 void Connection::slotConnect(QString adr, quint16 port)
@@ -69,7 +67,6 @@ void Connection::slotConnect(QString adr, quint16 port)
     connect(soc, SIGNAL(connected()), this, SLOT(slotConnectSuccess()));
 
     soc = nullptr;
-    delete soc;
 }
 
 void Connection::slotConnectSuccess()
@@ -85,7 +82,6 @@ void Connection::slotConnectSuccess()
     connect(socketMap[id], SIGNAL(disconnected()), socketMap[id], SLOT(deleteLater()));
 
     soc = nullptr;
-    delete soc;
 }
 
 void Connection::slotWrite(qint64 id, QString message)
