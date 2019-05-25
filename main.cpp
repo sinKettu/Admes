@@ -27,8 +27,15 @@ int main(int argc, char *argv[])
         }
         if (commands[0].compare("/connect") == 0)
         {
-            c->ConnectTo(commands[1], commands[2].toUShort());
-            continue;
+            if (commands[1].compare("tor") == 0)
+            {
+                c->ConnectThroughSOCKS5(commands[2], commands[3].toUShort());
+            }
+            else
+            {
+                c->ConnectTo(commands[1], commands[2].toUShort());
+                continue;
+            }
         }
         if (commands[0].compare("/disconnect") == 0)
         {

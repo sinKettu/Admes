@@ -20,6 +20,7 @@ public slots:
     void slotNewConnection();
     void slotRead();
     void slotConnect(QString adr, quint16 port);
+    void slotConnectSOCKS5(QString addr, quint16 port);
     void slotConnectSuccess();
     void slotWrite(qint64 id, QString message);
     void slotReadIncomming();

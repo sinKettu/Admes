@@ -13,12 +13,14 @@ public:
     void Send(qint64 id, QString message);
     void ConnectTo(QString adr, quint16 port);
     void Disconnect(qint64 id);
+    void ConnectThroughSOCKS5(QString addr, quint16 port);
 
 signals:
     void sigStartServer(quint16);
     void sigReadAll();
     void sigWrite(qint64, QString);
     void sigConnect(QString, quint16);
+    void sigConnectSOCKS5(QString, quint16);
     void sigDisconnect(qint64);
 
 public slots:

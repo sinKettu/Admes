@@ -12,6 +12,7 @@ Control::Control(QObject *parent) : QObject(parent)
 
     connect(this, SIGNAL(sigStartServer(quint16)),      connection, SLOT(slotStartServer(quint16)));
     connect(this, SIGNAL(sigConnect(QString, quint16)), connection, SLOT(slotConnect(QString, quint16)));
+    connect(this, SIGNAL(sigConnectSOCKS5(QString, quint16)), connection, SLOT(slotConnectSOCKS5(QString, quint16)));
     connect(this, SIGNAL(sigWrite(qint64, QString)),    connection, SLOT(slotWrite(qint64, QString)));
     connect(this, SIGNAL(sigReadAll()),                 connection, SLOT(slotReadIncomming()));
     connect(this, SIGNAL(sigDisconnect(qint64)),        connection, SLOT(slotDisconnect(qint64)));
@@ -27,6 +28,11 @@ void Control::StartServer(quint16 port)
 void Control::ConnectTo(QString adr, quint16 port)
 {
     emit sigConnect(adr, port);
+}
+
+void Control::ConnectThroughSOCKS5(QString addr, quint16 port)
+{
+    emit sigConnectSOCKS5(addr, port);
 }
 
 void Control::Send(qint64 id, QString message)
