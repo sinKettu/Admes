@@ -35,7 +35,6 @@ void Connection::slotStartTorServer(quint16 port)
 {
     tor = new QProcess();
     tor->setProgram("tor");
-    tor->setReadChannel(QProcess::StandardOutput);
     QDir tor_conf = QDir::current().absolutePath() + "/tor_config";
     if (!tor_conf.exists() && !QDir::current().mkdir("tor_config"))
     {
@@ -44,7 +43,9 @@ void Connection::slotStartTorServer(quint16 port)
         return;
     }
 
-    tor->arguments() << "-f" << tor_conf.absolutePath() + "/torrc";
+    QStringList args;
+    args << "-f" << tor_conf.absolutePath() + "/torrc";
+    tor->setArguments(args);
     QFile fout(tor_conf.absolutePath() + "/torrc");
     
     if (!fout.open(QIODevice::WriteOnly))
@@ -65,7 +66,7 @@ void Connection::slotStartTorServer(quint16 port)
     QString strPort = QString::number(port);
     tmp = "HiddenServicePort " + strPort + " 127.0.0.1:" + strPort + "\n";
     fout.write(tmp.toLatin1());
-    qDebug() << "Service listens to port " << strPort;
+    qDebug() << "Service will listen to port " << strPort;
 
     fout.close();
 
@@ -77,38 +78,16 @@ void Connection::slotStartTorServer(quint16 port)
         return;
     }
 
-    tor->waitForFinished(3000);
+    tor->waitForFinished(5500);
     if (tor->state() == QProcess::NotRunning)
     {
+        QString output = tor->readAll();
+        qDebug() << output << "\n";
         qDebug() << "Tor ran with error\n";
         tor->close();
         delete tor;
         return;
     }
-
-    // while (true)
-    // {
-    //     /*if (!tor->canReadLine())
-    //     {
-    //         qDebug() << "Couldn't start tor\n";
-    //         tor->close();
-    //         delete tor;
-    //         return;
-    //     }*/
-    //     tmp = QString::fromLocal8Bit(tor->read(20));
-    //     if (tmp.indexOf("Bootstrapped 100") > 0 && tmp.indexOf(": Done") > 0)
-    //     {
-    //         qDebug() << "Tor works\n";
-    //         break;
-    //     }
-    //     if (tmp.indexOf("[err]") >= 0)
-    //     {
-    //         qDebug() << "Couldn't start tor\n";
-    //         tor->close();
-    //         delete tor;
-    //         return;
-    //     }
-    // }
 
     server = new QTcpServer();
 
@@ -172,7 +151,7 @@ void Connection::slotConnectSOCKS5(QString addr, quint16 port)
 {
     qDebug() << "\nConnecting to SOCKS server\n";
     QTcpSocket *soc = new QTcpSocket();
-    soc->connectToHost("127.0.0.1", (quint16)9050);
+    soc->connectToHost("127.0.0.1", (quint16)9091);
 
     if (soc->waitForConnected(5000))
     {
