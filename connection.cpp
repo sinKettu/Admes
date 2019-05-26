@@ -156,14 +156,12 @@ void Connection::slotRead()
 
 void Connection::slotConnect(QString adr, quint16 port)
 {
-    qDebug() << "\nConnecting";
+    //qDebug() << "\nConnecting";
 
     QTcpSocket *soc = new QTcpSocket();
     soc->connectToHost(adr, port);
 
     connect(soc, SIGNAL(connected()), this, SLOT(slotConnectSuccess()));
-
-    soc = nullptr;
 }
 
 void Connection::slotConnectSOCKS5(QString addr, quint16 port)
@@ -273,15 +271,12 @@ void Connection::slotReadIncomming()
 
 void Connection::slotDisconnect(qint64 id)
 {
-    QTcpSocket *ptr = socketMap[id];
     socketMap[id]->disconnectFromHost();
-    socketMap.remove(id);
-    delete ptr;
 }
 
 void Connection::slotDisconnectWarning()
 {
-    qDebug() << "\nDisconnected: " << ((QTcpSocket *)QObject::sender())->socketDescriptor() << "\n\n";
+    CheckUp();
 }
 
 void Connection::slotOutputDialog(qint64 id)
@@ -292,4 +287,26 @@ void Connection::slotOutputDialog(qint64 id)
 void Connection::slotCloseDialog()
 {
     chat->Close();
+}
+
+void Connection::CheckUp()
+{
+    QMap<qint64, QTcpSocket *>::iterator soc;
+    QVector<qint64> disconnectedSockets;
+    for (soc = socketMap.begin(); soc != socketMap.end(); soc++)
+    {
+        if (soc.value()->state() == QAbstractSocket::UnconnectedState)
+        {
+            qDebug() << "Socket " << soc.key() << " disconnected\n";
+            disconnectedSockets.push_back(soc.key());
+        }
+    }
+    QTcpSocket *ptr;
+    for (quint32 index = 0; index < disconnectedSockets.length(); index++)
+    {
+        chat->Remove(disconnectedSockets.at(index));
+        ptr = socketMap[disconnectedSockets.at(index)];
+        socketMap.remove(disconnectedSockets.at(index));
+        delete ptr;
+    }
 }

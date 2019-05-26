@@ -12,7 +12,6 @@ int main(int argc, char *argv[])
     QTextStream qin(stdin);
     QString input;
     Control *c = new Control();
-    bool chatting = false;
     qint64 chatID = 0;
     const char *separator = "--------------------------------\n";
 
@@ -74,19 +73,18 @@ int main(int argc, char *argv[])
             std::cout << "admes switched to dialog mode\n";
             std::cout << separator << "\n";
 
-            chatting = true;
             chatID = commands[1].toLongLong();
             c->OutputDialog(chatID);
             continue;
         }
-        if (chatting && input[0] != '/')
+        if (chatID && input[0] != '/')
         {
             c->Send(chatID, input);
             continue;
         }
         if (commands.length() == 1 && commands[0].compare("/close") == 0)
         {
-            chatting = false;
+            chatID = 0;
             c->CloseDialog();
             continue;
         }

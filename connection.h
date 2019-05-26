@@ -31,6 +31,8 @@ public slots:
     void slotCloseDialog();
 
 private:
+    void CheckUp();
+
     QEventLoop *loop = nullptr;
     QTcpServer *server = nullptr;
     QMap<qint64, QTcpSocket *> socketMap;

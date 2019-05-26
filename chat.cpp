@@ -82,3 +82,14 @@ void Chat::Close()
 {
     current = 0;
 }
+
+void Chat::Remove(qint64 id)
+{
+    if (chats.contains(id))
+    {
+        chats[id].clear();
+        chats.remove(id);
+        if (id == current)
+            current = 0;
+    }
+}

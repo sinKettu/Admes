@@ -13,6 +13,7 @@ public:
     bool Output(qint64 id);
     void AddToChat(qint64 id, QString who, QString message);
     void AddNewOne(qint64 id);
+    void Remove(qint64 id);
     void Close();
 
 signals:
