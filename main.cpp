@@ -62,11 +62,6 @@ int main(int argc, char *argv[])
             c->Send(commands[1].toLongLong(), commands[2]);
             continue;
         }
-        if (commands[0].compare("/read") == 0)
-        {
-            c->ReadAll();
-            continue;
-        }
         if (commands.length() == 2 && commands[0].compare("/chat") == 0)
         {
             std::cout << "\n" << separator;

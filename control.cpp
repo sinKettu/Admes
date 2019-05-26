@@ -15,7 +15,6 @@ Control::Control(QObject *parent) : QObject(parent)
     connect(this, SIGNAL(sigConnect(QString, quint16)), connection, SLOT(slotConnect(QString, quint16)));
     connect(this, SIGNAL(sigConnectSOCKS5(QString, quint16)), connection, SLOT(slotConnectSOCKS5(QString, quint16)));
     connect(this, SIGNAL(sigWrite(qint64, QString)),    connection, SLOT(slotWrite(qint64, QString)));
-    connect(this, SIGNAL(sigReadAll()),                 connection, SLOT(slotReadIncomming()));
     connect(this, SIGNAL(sigDisconnect(qint64)),        connection, SLOT(slotDisconnect(qint64)));
     connect(this, SIGNAL(sigOutputDialog(qint64)),      connection, SLOT(slotOutputDialog(qint64)));
     connect(this, SIGNAL(sigCloseDialog()),             connection, SLOT(slotCloseDialog()));
@@ -46,11 +45,6 @@ void Control::ConnectThroughSOCKS5(QString addr, quint16 port)
 void Control::Send(qint64 id, QString message)
 {
     emit sigWrite(id, message);
-}
-
-void Control::ReadAll()
-{
-    emit sigReadAll();
 }
 
 void Control::Disconnect(qint64 id)

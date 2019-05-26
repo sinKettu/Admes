@@ -24,7 +24,6 @@ public slots:
     void slotConnectSOCKS5(QString addr, quint16 port);
     void slotConnectSuccess();
     void slotWrite(qint64 id, QString message);
-    void slotReadIncomming();
     void slotDisconnect(qint64);
     void slotDisconnectWarning();
     void slotOutputDialog(qint64);

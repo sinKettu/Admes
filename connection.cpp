@@ -118,7 +118,8 @@ void Connection::slotStartTorServer(quint16 port)
     }
     else
     {
-        qDebug() << "Tor service hostname: " << fin.readLine() << "\n";
+        tmp = QString().fromLocal8Bit(fin.readLine());
+        qDebug() << "Tor service hostname: " << tmp.mid(0, tmp.length() - 1) << "\n\n";
         fin.close();
     }
 
@@ -156,8 +157,6 @@ void Connection::slotRead()
 
 void Connection::slotConnect(QString adr, quint16 port)
 {
-    //qDebug() << "\nConnecting";
-
     QTcpSocket *soc = new QTcpSocket();
     soc->connectToHost(adr, port);
 
@@ -249,26 +248,6 @@ void Connection::slotWrite(qint64 id, QString message)
         qDebug() << "No socket" << id << "exists";
 }
 
-void Connection::slotReadIncomming()
-{
-    // TODO: Удалить
-
-    /*if (storage.isEmpty())
-    {
-        qDebug() << "\nNothing to read";
-    }
-    else
-    {
-        while (!storage.isEmpty())
-        {
-            printf("[%s]:\n", storage.last().toStdString().c_str());
-            storage.pop_back();
-            printf("%s\n", storage.last().toStdString().c_str());
-            storage.pop_back();
-        }
-    }*/
-}
-
 void Connection::slotDisconnect(qint64 id)
 {
     socketMap[id]->disconnectFromHost();
@@ -301,12 +280,9 @@ void Connection::CheckUp()
             disconnectedSockets.push_back(soc.key());
         }
     }
-    QTcpSocket *ptr;
     for (quint32 index = 0; index < disconnectedSockets.length(); index++)
     {
         chat->Remove(disconnectedSockets.at(index));
-        ptr = socketMap[disconnectedSockets.at(index)];
         socketMap.remove(disconnectedSockets.at(index));
-        delete ptr;
     }
 }
