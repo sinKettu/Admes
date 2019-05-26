@@ -10,6 +10,13 @@ void Chat::AddToChat(qint64 id, QString who, QString message)
 {
     if (chats.contains(id))
     {
+        if (who == "From" && (message == "HelloFromTor" || message == "MirrorHello"))
+        {
+
+                chats[id].clear();
+                return;
+        }
+
         chats[id] << who << message;
 
         if (id == current && who == "From")
@@ -24,10 +31,13 @@ void Chat::AddToChat(qint64 id, QString who, QString message)
     else
     {
         chats[id] = QStringList();
-        chats[id] << who << message;
-        std::cout << "[" << who.toStdString() << "]\n";
-        std::cout << message.toStdString();
-        std::cout << "\n";
+        if (!(who == "From" && (message == "HelloFromTor" || message == "MirrorHello")))
+        {
+            chats[id] << who << message;
+            std::cout << "[" << who.toStdString() << "]\n";
+            std::cout << message.toStdString();
+            std::cout << "\n";
+        }
     }
 }
 

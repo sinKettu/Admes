@@ -34,7 +34,6 @@ private:
     QEventLoop *loop = nullptr;
     QTcpServer *server = nullptr;
     QMap<qint64, QTcpSocket *> socketMap;
-    QStringList storage;
     QProcess *tor = nullptr;
     Chat *chat = nullptr;
 };

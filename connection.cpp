@@ -147,10 +147,11 @@ void Connection::slotRead()
     qint64 id = soc->socketDescriptor();
 
     QString message = QString().fromLocal8Bit(soc->readAll());
-    storage.push_back(message);
-    storage.push_back(QString::number(id));
 
     chat->AddToChat(id, "From", message);
+
+    if (message == "HelloFromTor")
+        soc->write("MirrorHello");
 }
 
 void Connection::slotConnect(QString adr, quint16 port)
@@ -210,6 +211,7 @@ void Connection::slotConnectSOCKS5(QString addr, quint16 port)
 
         socketMap.insert(id, soc);
         chat->AddNewOne(id);
+        soc->write("HelloFromTor");
         connect(socketMap[id], SIGNAL(readyRead()), this, SLOT(slotRead()));
         connect(socketMap[id], SIGNAL(disconnected()), this, SLOT(slotDisconnectWarning()));
         connect(socketMap[id], SIGNAL(disconnected()), socketMap[id], SLOT(deleteLater()));
@@ -251,7 +253,9 @@ void Connection::slotWrite(qint64 id, QString message)
 
 void Connection::slotReadIncomming()
 {
-    if (storage.isEmpty())
+    // TODO: Удалить
+
+    /*if (storage.isEmpty())
     {
         qDebug() << "\nNothing to read";
     }
@@ -264,7 +268,7 @@ void Connection::slotReadIncomming()
             printf("%s\n", storage.last().toStdString().c_str());
             storage.pop_back();
         }
-    }
+    }*/
 }
 
 void Connection::slotDisconnect(qint64 id)
