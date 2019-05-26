@@ -1,5 +1,6 @@
 #include "connection.h"
 #include <netinet/in.h>
+#include <QDir>
 
 Connection::Connection(QObject *parent) : QObject(parent)
 {
@@ -21,6 +22,103 @@ void Connection::slotStartServer(quint16 port)
         qDebug() << "\nServer is not started";
 
         server->close();
+        delete server;
+        return;
+    }
+
+    qDebug() << "\nServer is started";
+
+    connect(server, SIGNAL(newConnection()), this, SLOT(slotNewConnection()));
+}
+
+void Connection::slotStartTorServer(quint16 port)
+{
+    tor = new QProcess();
+    tor->setProgram("tor");
+    tor->setReadChannel(QProcess::StandardOutput);
+    QDir tor_conf = QDir::current().absolutePath() + "/tor_config";
+    if (!tor_conf.exists() && !QDir::current().mkdir("tor_config"))
+    {
+        qDebug() << "Can't create " << tor_conf.absolutePath() << "\n";
+        delete tor;
+        return;
+    }
+
+    tor->arguments() << "-f" << tor_conf.absolutePath() + "/torrc";
+    QFile fout(tor_conf.absolutePath() + "/torrc");
+    
+    if (!fout.open(QIODevice::WriteOnly))
+    {
+        qDebug() << "Can't create torrc file\n";
+        delete tor;
+        return;
+    }
+    
+    QString tmp = "SOCKSPort 9091\n";
+    fout.write(tmp.toLatin1());
+    qDebug() << "SOCKS port is 9091\n";
+
+    tmp = "HiddenServiceDir " + tor_conf.absolutePath() + "/service\n";
+    fout.write(tmp.toLatin1());
+    qDebug() << "Hidden service directory is " << tor_conf.absolutePath() << "/service\n";
+
+    QString strPort = QString::number(port);
+    tmp = "HiddenServicePort " + strPort + " 127.0.0.1:" + strPort + "\n";
+    fout.write(tmp.toLatin1());
+    qDebug() << "Service listens to port " << strPort;
+
+    fout.close();
+
+    if (!tor->open(QIODevice::ReadOnly))
+    {
+        qDebug() << "Can't start tor\n";
+        tor->close();
+        delete tor;
+        return;
+    }
+
+    tor->waitForFinished(3000);
+    if (tor->state() == QProcess::NotRunning)
+    {
+        qDebug() << "Tor ran with error\n";
+        tor->close();
+        delete tor;
+        return;
+    }
+
+    // while (true)
+    // {
+    //     /*if (!tor->canReadLine())
+    //     {
+    //         qDebug() << "Couldn't start tor\n";
+    //         tor->close();
+    //         delete tor;
+    //         return;
+    //     }*/
+    //     tmp = QString::fromLocal8Bit(tor->read(20));
+    //     if (tmp.indexOf("Bootstrapped 100") > 0 && tmp.indexOf(": Done") > 0)
+    //     {
+    //         qDebug() << "Tor works\n";
+    //         break;
+    //     }
+    //     if (tmp.indexOf("[err]") >= 0)
+    //     {
+    //         qDebug() << "Couldn't start tor\n";
+    //         tor->close();
+    //         delete tor;
+    //         return;
+    //     }
+    // }
+
+    server = new QTcpServer();
+
+    if (!server->listen(QHostAddress::Any, port))
+    {
+        qDebug() << "\nServer is not started";
+
+        server->close();
+        tor->close();
+        delete tor;
         delete server;
         return;
     }

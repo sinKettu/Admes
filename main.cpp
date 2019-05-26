@@ -22,8 +22,16 @@ int main(int argc, char *argv[])
         QStringList commands = input.split(' ');
         if (commands[0].compare("/open") == 0)
         {
-            c->StartServer(commands[1].toUShort());
-            continue;
+            if (commands[1].compare("tor") == 0)
+            {
+                c->StartTorServer(commands[2].toUShort());
+                continue;
+            }
+            else
+            {
+                c->StartServer(commands[1].toUShort());
+                continue;
+            }
         }
         if (commands[0].compare("/connect") == 0)
         {

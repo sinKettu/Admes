@@ -5,6 +5,7 @@
 #include <QEventLoop>
 #include <QTcpServer>
 #include <QTcpSocket>
+#include <QProcess>
 
 class Connection : public QObject
 {
@@ -17,6 +18,7 @@ signals:
 public slots:
     void slotConnectionExec();
     void slotStartServer(quint16);
+    void slotStartTorServer(quint16);
     void slotNewConnection();
     void slotRead();
     void slotConnect(QString adr, quint16 port);
@@ -32,6 +34,7 @@ private:
     QTcpServer *server;
     QMap<qint64, QTcpSocket *> socketMap;
     QStringList storage;
+    QProcess *tor;
 };
 
 #endif // CONNECTION_H

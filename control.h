@@ -9,6 +9,7 @@ class Control : public QObject
 public:
     explicit Control(QObject *parent = nullptr);
     void StartServer(quint16 port);
+    void StartTorServer(quint16 port);
     void ReadAll();
     void Send(qint64 id, QString message);
     void ConnectTo(QString adr, quint16 port);
@@ -17,6 +18,7 @@ public:
 
 signals:
     void sigStartServer(quint16);
+    void sigStartTorServer(quint16 port);
     void sigReadAll();
     void sigWrite(qint64, QString);
     void sigConnect(QString, quint16);
