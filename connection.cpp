@@ -81,9 +81,11 @@ void Connection::slotStartTorServer(quint16 port)
     tor->waitForFinished(5500);
     if (tor->state() == QProcess::NotRunning)
     {
-        QString output = tor->readAll();
-        qDebug() << output << "\n";
         qDebug() << "Tor ran with error\n";
+        QStringList torOutput = QString().fromLocal8Bit(tor->readAll()).split('\n');
+        for (uint32_t i = 0; i < torOutput.length(); i++)
+            qDebug() << torOutput[i] << "\n";
+            
         tor->close();
         delete tor;
         return;
