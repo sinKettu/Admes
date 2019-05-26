@@ -18,7 +18,8 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
         main.cpp \
     control.cpp \
-    connection.cpp
+    connection.cpp \
+    chat.cpp
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -27,4 +28,5 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 HEADERS += \
     control.h \
-    connection.h
+    connection.h \
+    chat.h

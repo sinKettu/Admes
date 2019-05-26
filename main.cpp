@@ -11,6 +11,8 @@ int main(int argc, char *argv[])
     QTextStream qin(stdin);
     QString input;
     Control *c = new Control();
+    bool chatting = false;
+    qint64 chatID = 0;
 
     while (true)
     {
@@ -59,6 +61,15 @@ int main(int argc, char *argv[])
         {
             c->ReadAll();
             continue;
+        }
+        if (commands.length() == 2 && commands[0].compare("/chat") == 0)
+        {
+            chatting = c->OutputChat(commands[1].toLongLong());
+            chatID = chatting ? commands[1].toLongLong() : 0;
+        }
+        if (chatting && input[0] != '/')
+        {
+            c->Send(chatID, input);
         }
         if (commands[0].compare("/exit") == 0)
         {

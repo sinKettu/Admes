@@ -14,6 +14,7 @@ public:
     explicit Connection(QObject *parent = nullptr);
 
 signals:
+    void sigAddToChat(qint64, QString, QString);
 
 public slots:
     void slotConnectionExec();
@@ -31,10 +32,10 @@ public slots:
 
 private:
     QEventLoop *loop = nullptr;
-    QTcpServer *server;
+    QTcpServer *server = nullptr;
     QMap<qint64, QTcpSocket *> socketMap;
     QStringList storage;
-    QProcess *tor;
+    QProcess *tor = nullptr;
 };
 
 #endif // CONNECTION_H

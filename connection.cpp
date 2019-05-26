@@ -129,12 +129,13 @@ void Connection::slotRead()
     QTcpSocket *soc = (QTcpSocket *)QObject::sender();
     qint64 id = soc->socketDescriptor();
 
-    qDebug() << "\nREAD:" << id;
+    // qDebug() << "\nREAD:" << id;
 
-    storage.push_back(soc->readAll());
+    QString message = QString().fromLocal8Bit(soc->readAll());
+    storage.push_back(message);
     storage.push_back(QString::number(id));
 
-    soc = nullptr;
+    emit sigAddToChat(id, "From", message);
 }
 
 void Connection::slotConnect(QString adr, quint16 port)
