@@ -9,6 +9,7 @@ Connection::Connection(QObject *parent) : QObject(parent)
 
 void Connection::slotConnectionExec()
 {
+    chat = new Chat();
     loop = new QEventLoop();
     loop->exec();
 }
@@ -114,6 +115,7 @@ void Connection::slotNewConnection()
     QTcpSocket *tmp = server->nextPendingConnection();
     qint64 id = tmp->socketDescriptor();
     socketMap.insert(id, tmp);
+    chat->AddNewOne(id);
 
     qDebug() << "\nNew Conncetion: " << id;
 
@@ -135,7 +137,8 @@ void Connection::slotRead()
     storage.push_back(message);
     storage.push_back(QString::number(id));
 
-    emit sigAddToChat(id, "From", message);
+    //emit sigAddToChat(id, "From", message);
+    chat->AddToChat(id, "From", message);
 }
 
 void Connection::slotConnect(QString adr, quint16 port)
@@ -194,6 +197,7 @@ void Connection::slotConnectSOCKS5(QString addr, quint16 port)
         qDebug() << "SOCKS5 connected: " << id << "\n";
 
         socketMap.insert(id, soc);
+        chat->AddNewOne(id);
         connect(socketMap[id], SIGNAL(readyRead()), this, SLOT(slotRead()));
         connect(socketMap[id], SIGNAL(disconnected()), this, SLOT(slotDisconnectWarning()));
         connect(socketMap[id], SIGNAL(disconnected()), socketMap[id], SLOT(deleteLater()));
@@ -211,9 +215,10 @@ void Connection::slotConnectSuccess()
     QTcpSocket *soc = (QTcpSocket *)QObject::sender();
     qint64 id = soc->socketDescriptor();
 
-    qDebug() << "\nConnected: " << id;
+    qDebug() << "\nConnected: " << id << "\n";
 
     socketMap.insert(id, soc);
+    chat->AddNewOne(id);
     connect(socketMap[id], SIGNAL(readyRead()), this, SLOT(slotRead()));
     connect(socketMap[id], SIGNAL(disconnected()), this, SLOT(slotDisconnectWarning()));
     connect(socketMap[id], SIGNAL(disconnected()), socketMap[id], SLOT(deleteLater()));
@@ -224,7 +229,10 @@ void Connection::slotConnectSuccess()
 void Connection::slotWrite(qint64 id, QString message)
 {
     if (socketMap.contains(id))
+    {
         socketMap[id]->write(message.toStdString().c_str());
+        chat->AddToChat(id, "To", message);
+    }
     else
         qDebug() << "No socket" << id << "exists";
 }
@@ -249,12 +257,23 @@ void Connection::slotReadIncomming()
 
 void Connection::slotDisconnect(qint64 id)
 {
+    QTcpSocket *ptr = socketMap[id];
     socketMap[id]->disconnectFromHost();
     socketMap.remove(id);
+    delete ptr;
 }
-
 
 void Connection::slotDisconnectWarning()
 {
-    qDebug() << "Disconnected: " << ((QTcpSocket *)QObject::sender())->socketDescriptor();
+    qDebug() << "\nDisconnected: " << ((QTcpSocket *)QObject::sender())->socketDescriptor() << "\n(admes) ";
+}
+
+void Connection::slotOutputDialog(qint64 id)
+{
+    chat->Output(id);
+}
+
+void Connection::slotCloseDialog()
+{
+    chat->Close();
 }

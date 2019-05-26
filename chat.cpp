@@ -1,5 +1,5 @@
 #include "chat.h"
-#include <QTextStream>
+#include <iostream>
 
 Chat::Chat(QObject *parent) : QObject(parent)
 {
@@ -8,25 +8,26 @@ Chat::Chat(QObject *parent) : QObject(parent)
 
 void Chat::AddToChat(qint64 id, QString who, QString message)
 {
-    QTextStream qout(stdout);
     if (chats.contains(id))
     {
         chats[id] << who << message;
 
-        if (id == current)
+        if (id == current && who == "From")
         {
-            qout << "[" << who << "]\n";
-            qout << message;
-            qout << "\n";
+            std::cout << "\n[" << who.toStdString() << "]\n";
+            std::cout << message.toStdString();
+            std::cout << "\n\n";
         }
+        if (id == current && who == "To")
+            std::cout << "\n";
     }
     else
     {
         chats[id] = QStringList();
         chats[id] << who << message;
-        qout << "[" << who << "]\n";
-        qout << message;
-        qout << "\n";
+        std::cout << "[" << who.toStdString() << "]\n";
+        std::cout << message.toStdString();
+        std::cout << "\n";
     }
 }
 
@@ -37,25 +38,37 @@ void Chat::slotAddToChat(qint64 id, QString who, QString message)
 
 bool Chat::Output(qint64 id)
 {
-    QTextStream qout(stdout);
     QMap<qint64, QStringList>::iterator currentChat = chats.find(id);
     if (currentChat != chats.end() && currentChat->length())
     {
+        current = id;
         for (quint32 index = 0; index < currentChat->length(); index+=2)
         {
-            qout << "[" << currentChat->at(index) << "]\n";
-            qout << currentChat->at(index) << "\n";
+            std::cout << "\n[" << currentChat->at(index).toStdString() << "]\n";
+            std::cout << currentChat->at(index + 1).toStdString() << "\n";
         }
         return true;
     }
     if (currentChat != chats.end() && currentChat->empty())
     {
-        qout << "Selected chat is empty\n";
+        current = id;
+        std::cout << "Selected chat is empty\n";
         return false;
     }
     else
     {
-        qout << "There is no such chat\n";
+        std::cout << "There is no such chat\n";
         return false;
     }
+}
+
+void Chat::AddNewOne(qint64 id)
+{
+    if (!chats.contains(id))
+        chats.insert(id, QStringList());
+}
+
+void Chat::Close()
+{
+    current = 0;
 }

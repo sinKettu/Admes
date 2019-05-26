@@ -5,7 +5,6 @@
 Control::Control(QObject *parent) : QObject(parent)
 {
     connection = new Connection();
-    chat = new Chat();
     QThread    *thread     = new QThread();
     connection->moveToThread(thread);
 
@@ -18,9 +17,8 @@ Control::Control(QObject *parent) : QObject(parent)
     connect(this, SIGNAL(sigWrite(qint64, QString)),    connection, SLOT(slotWrite(qint64, QString)));
     connect(this, SIGNAL(sigReadAll()),                 connection, SLOT(slotReadIncomming()));
     connect(this, SIGNAL(sigDisconnect(qint64)),        connection, SLOT(slotDisconnect(qint64)));
-
-    connect(connection, SIGNAL(sigAddToChat(qint64, QString, QString)), 
-            chat, SLOT(slotAddToChat(qint64, QString, QString)));
+    connect(this, SIGNAL(sigOutputDialog(qint64)),      connection, SLOT(slotOutputDialog(qint64)));
+    connect(this, SIGNAL(sigCloseDialog()),             connection, SLOT(slotCloseDialog()));
 
     thread->start();
 }
@@ -47,7 +45,6 @@ void Control::ConnectThroughSOCKS5(QString addr, quint16 port)
 
 void Control::Send(qint64 id, QString message)
 {
-    chat->AddToChat(id, "To", message);
     emit sigWrite(id, message);
 }
 
@@ -61,7 +58,12 @@ void Control::Disconnect(qint64 id)
     emit sigDisconnect(id);
 }
 
-bool Control::OutputChat(qint64 id)
+void Control::OutputDialog(qint64 id)
 {
-    return chat->Output(id);
+    emit sigOutputDialog(id);
+}
+
+void Control::CloseDialog()
+{
+    emit sigCloseDialog();
 }

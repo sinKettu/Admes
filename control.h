@@ -3,7 +3,6 @@
 
 #include <QObject>
 #include "connection.h"
-#include "chat.h"
 
 class Control : public QObject
 {
@@ -17,7 +16,8 @@ public:
     void ConnectTo(QString adr, quint16 port);
     void Disconnect(qint64 id);
     void ConnectThroughSOCKS5(QString addr, quint16 port);
-    bool OutputChat(qint64 id);
+    void OutputDialog(qint64 id);
+    void CloseDialog();
 
 signals:
     void sigStartServer(quint16);
@@ -27,10 +27,11 @@ signals:
     void sigConnect(QString, quint16);
     void sigConnectSOCKS5(QString, quint16);
     void sigDisconnect(qint64);
+    void sigOutputDialog(qint64 id);
+    void sigCloseDialog();
 
 private:
     Connection *connection = nullptr;
-    Chat *chat = nullptr;
 
 public slots:
 };

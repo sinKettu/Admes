@@ -1,7 +1,8 @@
 #include <QCoreApplication>
 #include <QString>
 #include <QTextStream>
-#include <stdio.h>
+#include <iostream>
+#include <string>
 #include "control.h"
 
 int main(int argc, char *argv[])
@@ -16,7 +17,9 @@ int main(int argc, char *argv[])
 
     while (true)
     {
-        printf("(admes) ");
+        if (!chatting)
+            std::cout << "(admes) ";
+
         input = qin.readLine();
         if (input.length() == 0)
             continue;
@@ -40,6 +43,7 @@ int main(int argc, char *argv[])
             if (commands[1].compare("tor") == 0)
             {
                 c->ConnectThroughSOCKS5(commands[2], commands[3].toUShort());
+                continue;
             }
             else
             {
@@ -64,12 +68,21 @@ int main(int argc, char *argv[])
         }
         if (commands.length() == 2 && commands[0].compare("/chat") == 0)
         {
-            chatting = c->OutputChat(commands[1].toLongLong());
-            chatID = chatting ? commands[1].toLongLong() : 0;
+            chatting = true;
+            chatID = commands[1].toLongLong();
+            c->OutputDialog(chatID);
+            continue;
         }
         if (chatting && input[0] != '/')
         {
             c->Send(chatID, input);
+            continue;
+        }
+        if (commands.length() == 1 && commands[0].compare("/close") == 0)
+        {
+            chatting = false;
+            c->CloseDialog();
+            continue;
         }
         if (commands[0].compare("/exit") == 0)
         {

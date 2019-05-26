@@ -1,6 +1,7 @@
 #ifndef CONNECTION_H
 #define CONNECTION_H
 
+#include "chat.h"
 #include <QObject>
 #include <QEventLoop>
 #include <QTcpServer>
@@ -12,9 +13,6 @@ class Connection : public QObject
     Q_OBJECT
 public:
     explicit Connection(QObject *parent = nullptr);
-
-signals:
-    void sigAddToChat(qint64, QString, QString);
 
 public slots:
     void slotConnectionExec();
@@ -29,6 +27,8 @@ public slots:
     void slotReadIncomming();
     void slotDisconnect(qint64);
     void slotDisconnectWarning();
+    void slotOutputDialog(qint64);
+    void slotCloseDialog();
 
 private:
     QEventLoop *loop = nullptr;
@@ -36,6 +36,7 @@ private:
     QMap<qint64, QTcpSocket *> socketMap;
     QStringList storage;
     QProcess *tor = nullptr;
+    Chat *chat = nullptr;
 };
 
 #endif // CONNECTION_H
