@@ -14,12 +14,14 @@ int main(int argc, char *argv[])
     Control *c = new Control();
     bool chatting = false;
     qint64 chatID = 0;
+    const char *separator = "--------------------------------\n";
+
+    std::cout << "\n" << separator;
+    std::cout << "admes is ready to interpret your commands!\n";
+    std::cout << separator << "\n";
 
     while (true)
     {
-        if (!chatting)
-            std::cout << "(admes) ";
-
         input = qin.readLine();
         if (input.length() == 0)
             continue;
@@ -68,6 +70,10 @@ int main(int argc, char *argv[])
         }
         if (commands.length() == 2 && commands[0].compare("/chat") == 0)
         {
+            std::cout << "\n" << separator;
+            std::cout << "admes switched to dialog mode\n";
+            std::cout << separator << "\n";
+
             chatting = true;
             chatID = commands[1].toLongLong();
             c->OutputDialog(chatID);

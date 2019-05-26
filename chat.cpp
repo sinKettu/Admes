@@ -55,19 +55,19 @@ bool Chat::Output(qint64 id)
         for (quint32 index = 0; index < currentChat->length(); index+=2)
         {
             std::cout << "\n[" << currentChat->at(index).toStdString() << "]\n";
-            std::cout << currentChat->at(index + 1).toStdString() << "\n";
+            std::cout << currentChat->at(index + 1).toStdString() << "\n\n";
         }
         return true;
     }
     if (currentChat != chats.end() && currentChat->empty())
     {
         current = id;
-        std::cout << "Selected chat is empty\n";
+        std::cout << "Selected chat is empty\n\n";
         return false;
     }
     else
     {
-        std::cout << "There is no such chat\n";
+        std::cout << "There is no such chat\n\n";
         return false;
     }
 }

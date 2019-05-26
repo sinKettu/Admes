@@ -281,7 +281,7 @@ void Connection::slotDisconnect(qint64 id)
 
 void Connection::slotDisconnectWarning()
 {
-    qDebug() << "\nDisconnected: " << ((QTcpSocket *)QObject::sender())->socketDescriptor() << "\n(admes) ";
+    qDebug() << "\nDisconnected: " << ((QTcpSocket *)QObject::sender())->socketDescriptor() << "\n\n";
 }
 
 void Connection::slotOutputDialog(qint64 id)
