@@ -62,7 +62,7 @@ void Connection::slotStartTorServer(quint16 port)
 
     tmp = "HiddenServiceDir " + tor_conf.absolutePath() + "/service\n";
     fout.write(tmp.toLatin1());
-    qDebug() << "Hidden service directory is " << tor_conf.absolutePath() << "/service\n";
+    qDebug() << "Hidden service directory is " << tor_conf.absolutePath() + "/service\n";
 
     QString strPort = QString::number(port);
     tmp = "HiddenServicePort " + strPort + " 127.0.0.1:" + strPort + "\n";
@@ -96,7 +96,7 @@ void Connection::slotStartTorServer(quint16 port)
 
     if (!server->listen(QHostAddress::Any, port))
     {
-        qDebug() << "\nServer is not started";
+        qDebug() << "\nServer is not started\n";
 
         server->close();
         tor->close();
@@ -105,7 +105,22 @@ void Connection::slotStartTorServer(quint16 port)
         return;
     }
 
-    qDebug() << "\nServer is started";
+    qDebug() << "\nServer is started\n";
+    QFile fin(tor_conf.absolutePath() + "/service/hostname", this);
+    if (!fin.open(QIODevice::ReadOnly))
+    {
+        qDebug() << "Couldn't read tor service hostname\n";
+        server->close();
+        tor->close();
+        delete tor;
+        delete server;
+        return;
+    }
+    else
+    {
+        qDebug() << "Tor service hostname: " << fin.readLine() << "\n";
+        fin.close();
+    }
 
     connect(server, SIGNAL(newConnection()), this, SLOT(slotNewConnection()));
 }
@@ -117,7 +132,7 @@ void Connection::slotNewConnection()
     socketMap.insert(id, tmp);
     chat->AddNewOne(id);
 
-    qDebug() << "\nNew Conncetion: " << id;
+    qDebug() << "\nNew Conncetion: " << id << "\n";
 
     connect(socketMap[id], SIGNAL(readyRead()), this, SLOT(slotRead()));
     connect(socketMap[id], SIGNAL(disconnected()), this, SLOT(slotDisconnectWarning()));
@@ -131,13 +146,10 @@ void Connection::slotRead()
     QTcpSocket *soc = (QTcpSocket *)QObject::sender();
     qint64 id = soc->socketDescriptor();
 
-    // qDebug() << "\nREAD:" << id;
-
     QString message = QString().fromLocal8Bit(soc->readAll());
     storage.push_back(message);
     storage.push_back(QString::number(id));
 
-    //emit sigAddToChat(id, "From", message);
     chat->AddToChat(id, "From", message);
 }
 
