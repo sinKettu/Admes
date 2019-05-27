@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
             {
             #ifdef _WIN32
 
-                std::cout << "It seems like you use tor\n";
+                std::cout << "It seems like you use windows\n";
                 std::cout << "Please, specify path to tor.exe\n";
                 std::cout << "Type '/back' to return to interpreter\n";
 

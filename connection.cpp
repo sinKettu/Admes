@@ -66,9 +66,9 @@ void Connection::slotStartTorServer(quint16 port)
         return;
     }
     
-    QString tmp = "SOCKSPort 9091\n";
+    QString tmp = "SOCKSPort 9050\n";
     fout.write(tmp.toLatin1());
-    qDebug() << "SOCKS port is 9091\n";
+    qDebug() << "\nSOCKS port is 9050\n";
 
     tmp = "HiddenServiceDir " + tor_conf.absolutePath() + "/service\n";
     fout.write(tmp.toLatin1());
@@ -177,7 +177,7 @@ void Connection::slotConnectSOCKS5(QString addr, quint16 port)
 {
     qDebug() << "\nConnecting to SOCKS server\n";
     QTcpSocket *soc = new QTcpSocket();
-    soc->connectToHost("127.0.0.1", (quint16)9091);
+    soc->connectToHost("127.0.0.1", (quint16)9050);
 
     if (soc->waitForConnected(5000))
     {
