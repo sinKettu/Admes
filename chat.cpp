@@ -63,6 +63,8 @@ bool Chat::Output(qint64 id)
     }
     if (currentChat != chats.end() && currentChat->empty())
     {
+        HighLight(QString("admes switched to dialog mode"));
+
         current = id;
         std::cout << prefix << "Selected chat is empty\n";
         return false;

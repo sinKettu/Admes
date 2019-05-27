@@ -28,14 +28,14 @@ void Connection::slotStartServer(quint16 port)
 
     if (!server->listen(QHostAddress::Any, port))
     {
-        std::cout << prefix << "Server is not started";
+        std::cout << prefix << "Server is not started\n";
 
         server->close();
         delete server;
         return;
     }
 
-    std::cout << prefix << "Server is started";
+    std::cout << prefix << "Server is started\n";
 
     connect(server, SIGNAL(newConnection()), this, SLOT(slotNewConnection()));
 }
@@ -101,7 +101,6 @@ void Connection::slotStartTorServer(quint16 port)
     }
 
     server = new QTcpServer();
-
     if (!server->listen(QHostAddress::Any, port))
     {
         std::cout <<  prefix << "Server is not started\n";
