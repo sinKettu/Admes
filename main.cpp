@@ -5,6 +5,18 @@
 #include <string>
 #include "control.h"
 
+void HighLight(QString str)
+{
+    QString separator = "+";
+    for (qint32 index = 0; index < str.length(); index++)
+        separator += "-";
+    separator += "+";
+
+    std::cout << separator.toStdString() << std::endl;
+    std::cout << str.toStdString() << std::endl;
+    std::cout << separator.toStdString() << std::endl << std::endl;
+}
+
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
@@ -13,12 +25,8 @@ int main(int argc, char *argv[])
     QString input;
     Control *c = new Control();
     qint64 chatID = 0;
-    const char *separator = "--------------------------------\n";
 
-    std::cout << "\n" << separator;
-    std::cout << "admes is ready to interpret your commands!\n";
-    std::cout << separator << "\n";
-
+    HighLight(QString("admes is ready to interpret your commands!"));
     while (true)
     {
         input = qin.readLine();
@@ -59,9 +67,7 @@ int main(int argc, char *argv[])
         }
         if (commands[0].compare("/chat") == 0 && commands.length() == 2)
         {
-            std::cout << "\n" << separator;
-            std::cout << "admes switched to dialog mode\n";
-            std::cout << separator << "\n";
+            HighLight(QString("admes switched to dialog mode"));
 
             chatID = commands[1].toLongLong();
             c->OutputDialog(chatID);
