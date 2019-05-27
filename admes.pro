@@ -31,4 +31,6 @@ HEADERS += \
     connection.h \
     chat.h
 
-LIBS += libws2_32
+win32|win64 {
+    LIBS += libws2_32
+}
