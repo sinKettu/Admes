@@ -1,22 +1,9 @@
 #include <QCoreApplication>
 #include <QString>
 #include <QTextStream>
-#include <iostream>
 #include <QFile>
-#include <string>
 #include "control.h"
-
-void HighLight(QString str)
-{
-    QString separator = "+";
-    for (qint32 index = 0; index < str.length(); index++)
-        separator += "-";
-    separator += "+";
-
-    std::cout << std::endl << separator.toStdString() << std::endl;
-    std::cout << str.toStdString() << std::endl;
-    std::cout << separator.toStdString() << std::endl << std::endl;
-}
+#include "common.h"
 
 int main(int argc, char *argv[])
 {
@@ -41,9 +28,9 @@ int main(int argc, char *argv[])
             {
             #ifdef _WIN32
 
-                std::cout << "It seems like you use windows\n";
-                std::cout << "Please, specify path to tor.exe\n";
-                std::cout << "Type '/back' to return to interpreter\n";
+                std::cout << prefix << "It seems like you use windows\n";
+                std::cout << prefix << "Please, specify path to tor.exe\n";
+                std::cout << prefix << "Type '/back' to return to interpreter\n";
 
                 QString tor_path = qin.readLine();
                 bool valid = false;
@@ -56,8 +43,8 @@ int main(int argc, char *argv[])
                         break;
                     else
                     {
-                        std::cout << "No such file exists\n";
-                        std::cout << "Try again\n";
+                        std::cout << prefix << "No such file exists\n";
+                        std::cout << prefix << "Try again\n";
                         tor_path = qin.readLine();
                     }
                 }
@@ -72,9 +59,9 @@ int main(int argc, char *argv[])
 
             #elif _WIN64
 
-                std::cout << "It seems like you use windows\n";
-                std::cout << "Please, specify path to tor.exe\n";
-                std::cout << "Type '/back' to return to interpreter\n";
+                std::cout << prefix << "It seems like you use windows\n";
+                std::cout << prefix << "Please, specify path to tor.exe\n";
+                std::cout << prefix << "Type '/back' to return to interpreter\n";
 
                 QString tor_path = qin.readLine();
                 bool valid = false;
@@ -87,8 +74,8 @@ int main(int argc, char *argv[])
                         break;
                     else
                     {
-                        std::cout << "No such file exists\n";
-                        std::cout << "Try again\n";
+                        std::cout << prefix << "No such file exists\n";
+                        std::cout << prefix << "Try again\n";
                         tor_path = qin.readLine();
                     }
                 }
@@ -132,8 +119,6 @@ int main(int argc, char *argv[])
         }
         if (commands[0].compare("/chat") == 0 && commands.length() == 2)
         {
-            HighLight(QString("admes switched to dialog mode"));
-
             chatID = commands[1].toLongLong();
             c->OutputDialog(chatID);
             continue;
@@ -154,7 +139,7 @@ int main(int argc, char *argv[])
             exit(0);
         }
 
-        printf("Wrong command!!!\n");
+        std::cout <<  prefix << "Wrong command!\n";
     }
 
     return a.exec();

@@ -19,7 +19,8 @@ SOURCES += \
         main.cpp \
     control.cpp \
     connection.cpp \
-    chat.cpp
+    chat.cpp \
+    common.cpp
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -29,7 +30,8 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 HEADERS += \
     control.h \
     connection.h \
-    chat.h
+    chat.h \
+    common.h
 
 win32|win64 {
     LIBS += libws2_32

@@ -1,5 +1,5 @@
 #include "chat.h"
-#include <iostream>
+#include "common.h"
 
 Chat::Chat(QObject *parent) : QObject(parent)
 {
@@ -51,6 +51,8 @@ bool Chat::Output(qint64 id)
     QMap<qint64, QStringList>::iterator currentChat = chats.find(id);
     if (currentChat != chats.end() && currentChat->length())
     {
+        HighLight(QString("admes switched to dialog mode"));
+
         current = id;
         for (quint32 index = 0; index < currentChat->length(); index+=2)
         {
@@ -62,12 +64,12 @@ bool Chat::Output(qint64 id)
     if (currentChat != chats.end() && currentChat->empty())
     {
         current = id;
-        std::cout << "Selected chat is empty\n\n";
+        std::cout << prefix << "Selected chat is empty\n";
         return false;
     }
     else
     {
-        std::cout << "There is no such chat\n\n";
+        std::cout << prefix << "There is no such chat\n";
         return false;
     }
 }
