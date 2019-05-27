@@ -12,9 +12,8 @@ void Chat::AddToChat(qint64 id, QString who, QString message)
     {
         if (message == "HelloFromTor" || message == "MirrorHello")
         {
-
-                chats[id].clear();
-                return;
+            chats[id].clear();
+            return;
         }
 
         chats[id] << who << message;
