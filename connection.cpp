@@ -1,5 +1,12 @@
+#ifdef _WIN32
+    #include <winsock.h>
+#elif _WIN64
+    #include <winsock.h>
+#else
+    #include <netinet/in.h>
+
+
 #include "connection.h"
-#include <netinet/in.h>
 #include <QDir>
 
 Connection::Connection(QObject *parent) : QObject(parent)
