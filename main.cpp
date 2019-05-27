@@ -72,7 +72,34 @@ int main(int argc, char *argv[])
 
             #elif _WIN64
 
-                // code here
+                std::cout << "It seems like you use windows\n";
+                std::cout << "Please, specify path to tor.exe\n";
+                std::cout << "Type '/back' to return to interpreter\n";
+
+                QString tor_path = qin.readLine();
+                bool valid = false;
+                while (true)        // Упростить?
+                {
+                    valid = QFile(tor_path).exists();
+                    if (valid)
+                        break;
+                    else if (tor_path.compare("/back") == 0)
+                        break;
+                    else
+                    {
+                        std::cout << "No such file exists\n";
+                        std::cout << "Try again\n";
+                        tor_path = qin.readLine();
+                    }
+                }
+
+                if (!valid)
+                {
+                    HighLight(QString("admes is ready to interpret your commands!"));
+                    continue;
+                }
+
+                c->SpecifyTorPath(tor_path);
 
             #endif
 
