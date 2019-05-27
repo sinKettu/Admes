@@ -29,6 +29,16 @@ public slots:
     void slotOutputDialog(qint64);
     void slotCloseDialog();
 
+#ifdef _WIN32
+
+    void slotSpecifyTorPath(QString path);
+
+#elif _WIN64
+
+    void slotSpecifyTorPath(QString path);
+
+#endif
+
 private:
     void CheckUp();
 
@@ -37,6 +47,10 @@ private:
     QMap<qint64, QTcpSocket *> socketMap;
     QProcess *tor = nullptr;
     Chat *chat = nullptr;
+    // In UNIX will be used just "tor" command
+    //      (tor should be installed)
+    // In Windows user should specify path to tor.exe
+    QString tor_path = "tor";
 };
 
 #endif // CONNECTION_H

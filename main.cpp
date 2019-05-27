@@ -2,6 +2,7 @@
 #include <QString>
 #include <QTextStream>
 #include <iostream>
+#include <QFile>
 #include <string>
 #include "control.h"
 
@@ -12,7 +13,7 @@ void HighLight(QString str)
         separator += "-";
     separator += "+";
 
-    std::cout << separator.toStdString() << std::endl;
+    std::cout << std::endl << separator.toStdString() << std::endl;
     std::cout << str.toStdString() << std::endl;
     std::cout << separator.toStdString() << std::endl << std::endl;
 }
@@ -38,6 +39,43 @@ int main(int argc, char *argv[])
         {
             if (commands[1].compare("tor") == 0 && commands.length() == 3)
             {
+            #ifdef _WIN32
+
+                std::cout << "It seems like you use tor\n";
+                std::cout << "Please, specify path to tor.exe\n";
+                std::cout << "Type '/back' to return to interpreter\n";
+
+                QString tor_path = qin.readLine();
+                bool valid = false;
+                while (true)        // Упростить?
+                {
+                    valid = QFile(tor_path).exists();
+                    if (valid)
+                        break;
+                    else if (tor_path.compare("/back") == 0)
+                        break;
+                    else
+                    {
+                        std::cout << "No such file exists\n";
+                        std::cout << "Try again\n";
+                        tor_path = qin.readLine();
+                    }
+                }
+
+                if (!valid)
+                {
+                    HighLight(QString("admes is ready to interpret your commands!"));
+                    continue;
+                }
+
+                c->SpecifyTorPath(tor_path);
+
+            #elif _WIN64
+
+                // code here
+
+            #endif
+
                 c->StartTorServer(commands[2].toUShort());
                 continue;
             }

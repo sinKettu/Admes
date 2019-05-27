@@ -30,3 +30,5 @@ HEADERS += \
     control.h \
     connection.h \
     chat.h
+
+LIBS += libws2_32

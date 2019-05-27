@@ -17,6 +17,11 @@ public:
     void ConnectThroughSOCKS5(QString addr, quint16 port);
     void OutputDialog(qint64 id);
     void CloseDialog();
+#ifdef _WIN32
+    void SpecifyTorPath(QString path);
+#elif _WIN64
+    void SpecifyTorPath(QString path);
+#endif
 
 signals:
     void sigStartServer(quint16);
@@ -27,6 +32,11 @@ signals:
     void sigDisconnect(qint64);
     void sigOutputDialog(qint64 id);
     void sigCloseDialog();
+#ifdef _WIN32
+    void sigSpecifyTorPath(QString);
+#elif _WIN64
+    void sigSpecifyTorPath(QString);
+#endif
 
 private:
     Connection *connection = nullptr;

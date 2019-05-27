@@ -1,13 +1,16 @@
 #ifdef _WIN32
     #include <winsock.h>
+    #include <string>
 #elif _WIN64
     #include <winsock.h>
+    #include <string>
 #else
     #include <netinet/in.h>
-
+#endif
 
 #include "connection.h"
 #include <QDir>
+#include <iostream>
 
 Connection::Connection(QObject *parent) : QObject(parent)
 {
@@ -42,7 +45,7 @@ void Connection::slotStartServer(quint16 port)
 void Connection::slotStartTorServer(quint16 port)
 {
     tor = new QProcess();
-    tor->setProgram("tor");
+    tor->setProgram(tor_path);
     QDir tor_conf = QDir::current().absolutePath() + "/tor_config";
     if (!tor_conf.exists() && !QDir::current().mkdir("tor_config"))
     {
@@ -112,8 +115,8 @@ void Connection::slotStartTorServer(quint16 port)
         return;
     }
 
-    qDebug() << "\nServer is started\n";
     QFile fin(tor_conf.absolutePath() + "/service/hostname", this);
+    qDebug() << "\nServer is started\n";
     if (!fin.open(QIODevice::ReadOnly))
     {
         qDebug() << "Couldn't read tor service hostname\n";
@@ -191,11 +194,11 @@ void Connection::slotConnectSOCKS5(QString addr, quint16 port)
             return;
         }
 
-        port = htons(port);
+        port = htons(static_cast<unsigned short>(port));
         request = new char[4 + 1 + addr.length() + 2];
         memcpy(request, "\05\01\00\03", 4);
-        request[4] = static_cast<unsigned char>(addr.length());
-        memcpy(request + 5, addr.toStdString().c_str(), addr.length());
+        request[4] = static_cast<char>(addr.length());
+        memcpy(request + 5, addr.toStdString().c_str(), static_cast<size_t>(addr.length()));
         memcpy(request + 5 + addr.length(), &port, 2);
 
         soc->write(request, 4 + 1+ addr.length() + 2);
@@ -293,3 +296,19 @@ void Connection::CheckUp()
         socketMap.remove(disconnectedSockets.at(index));
     }
 }
+
+#ifdef _WIN32
+
+void Connection::slotSpecifyTorPath(QString path)
+{
+    tor_path = path;
+}
+
+#elif _WIN64
+
+void Connection::slotSpecifyTorPath(QString path)
+{
+    tor_path = path;
+}
+
+#endif
