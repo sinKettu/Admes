@@ -1,16 +1,14 @@
 #ifdef _WIN32
     #include <winsock.h>
-    #include <string>
 #elif _WIN64
     #include <winsock.h>
-    #include <string>
 #else
     #include <netinet/in.h>
 #endif
 
 #include "connection.h"
+#include "common.h"
 #include <QDir>
-#include <iostream>
 
 Connection::Connection(QObject *parent) : QObject(parent)
 {
@@ -30,14 +28,14 @@ void Connection::slotStartServer(quint16 port)
 
     if (!server->listen(QHostAddress::Any, port))
     {
-        qDebug() << "\nServer is not started";
+        std::cout << prefix << "Server is not started\n";
 
         server->close();
         delete server;
         return;
     }
 
-    qDebug() << "\nServer is started";
+    std::cout << prefix << "Server is started\n";
 
     connect(server, SIGNAL(newConnection()), this, SLOT(slotNewConnection()));
 }
@@ -49,7 +47,7 @@ void Connection::slotStartTorServer(quint16 port)
     QDir tor_conf = QDir::current().absolutePath() + "/tor_config";
     if (!tor_conf.exists() && !QDir::current().mkdir("tor_config"))
     {
-        qDebug() << "Can't create " << tor_conf.absolutePath() << "\n";
+        std::cout << prefix << "Can't create " << tor_conf.absolutePath().toStdString() << "\n";
         delete tor;
         return;
     }
@@ -61,29 +59,29 @@ void Connection::slotStartTorServer(quint16 port)
     
     if (!fout.open(QIODevice::WriteOnly))
     {
-        qDebug() << "Can't create torrc file\n";
+        std::cout << prefix << "Can't create torrc file\n";
         delete tor;
         return;
     }
     
     QString tmp = "SOCKSPort 9050\n";
     fout.write(tmp.toLatin1());
-    qDebug() << "\nSOCKS port is 9050\n";
+    std::cout << prefix << "SOCKS port is 9050\n";
 
     tmp = "HiddenServiceDir " + tor_conf.absolutePath() + "/service\n";
     fout.write(tmp.toLatin1());
-    qDebug() << "Hidden service directory is " << tor_conf.absolutePath() + "/service\n";
+    std::cout << prefix << "Hidden service directory is " << tor_conf.absolutePath().toStdString() + "/service\n";
 
     QString strPort = QString::number(port);
     tmp = "HiddenServicePort " + strPort + " 127.0.0.1:" + strPort + "\n";
     fout.write(tmp.toLatin1());
-    qDebug() << "Service will listen to port " << strPort;
+    std::cout << prefix << "Service will listen to port " << strPort.toStdString() << "\n";
 
     fout.close();
 
     if (!tor->open(QIODevice::ReadOnly))
     {
-        qDebug() << "Can't start tor\n";
+        std::cout << prefix << "Can't start tor\n";
         tor->close();
         delete tor;
         return;
@@ -92,10 +90,10 @@ void Connection::slotStartTorServer(quint16 port)
     tor->waitForFinished(5500);
     if (tor->state() == QProcess::NotRunning)
     {
-        qDebug() << "Tor ran with error\n";
+        std::cout << prefix << "Tor ran with error\n";
         QStringList torOutput = QString().fromLocal8Bit(tor->readAll()).split('\n');
         for (uint32_t i = 0; i < torOutput.length(); i++)
-            qDebug() << torOutput[i] << "\n";
+            std::cout << "[TOR] " << torOutput[i].toStdString() << "\n";
             
         tor->close();
         delete tor;
@@ -103,10 +101,9 @@ void Connection::slotStartTorServer(quint16 port)
     }
 
     server = new QTcpServer();
-
     if (!server->listen(QHostAddress::Any, port))
     {
-        qDebug() << "\nServer is not started\n";
+        std::cout <<  prefix << "Server is not started\n";
 
         server->close();
         tor->close();
@@ -116,10 +113,10 @@ void Connection::slotStartTorServer(quint16 port)
     }
 
     QFile fin(tor_conf.absolutePath() + "/service/hostname", this);
-    qDebug() << "\nServer is started\n";
+    std::cout << prefix << "Server is started\n";
     if (!fin.open(QIODevice::ReadOnly))
     {
-        qDebug() << "Couldn't read tor service hostname\n";
+        std::cout << prefix << "Couldn't read tor service hostname\n";
         server->close();
         tor->close();
         delete tor;
@@ -129,7 +126,7 @@ void Connection::slotStartTorServer(quint16 port)
     else
     {
         tmp = QString().fromLocal8Bit(fin.readLine());
-        qDebug() << "Tor service hostname: " << tmp.mid(0, tmp.length() - 1) << "\n\n";
+        std::cout << prefix << "Tor service hostname: " << tmp.mid(0, tmp.length() - 1).toStdString() << "\n";
         fin.close();
     }
 
@@ -143,7 +140,7 @@ void Connection::slotNewConnection()
     socketMap.insert(id, tmp);
     chat->AddNewOne(id);
 
-    qDebug() << "\nNew Conncetion: " << id << "\n";
+    std::cout << prefix << "New Conncetion: " << id << "\n";
 
     connect(socketMap[id], SIGNAL(readyRead()), this, SLOT(slotRead()));
     connect(socketMap[id], SIGNAL(disconnected()), this, SLOT(slotDisconnectWarning()));
@@ -175,7 +172,7 @@ void Connection::slotConnect(QString adr, quint16 port)
 
 void Connection::slotConnectSOCKS5(QString addr, quint16 port)
 {
-    qDebug() << "\nConnecting to SOCKS server\n";
+    std::cout << prefix << "Connecting to SOCKS server\n";
     QTcpSocket *soc = new QTcpSocket();
     soc->connectToHost("127.0.0.1", (quint16)9050);
 
@@ -188,7 +185,7 @@ void Connection::slotConnectSOCKS5(QString addr, quint16 port)
 
         if (response[1] != 0x00)
         {
-            qDebug() << "SOCKS5 error authentificating\n";
+            std::cout << prefix << "SOCKS5 error authentificating\n";
             soc->close();
             delete soc;
             return;
@@ -207,14 +204,14 @@ void Connection::slotConnectSOCKS5(QString addr, quint16 port)
         soc->read(response, 10);
         if (response[1] != 0x00)
         {
-            qDebug() << "SOCKS5 error: " << (int)response[1] << "\n";
+            std::cout << prefix << "SOCKS5 error: " << (int)response[1] << "\n";
             soc->close();
             delete soc;
             return;
         }
 
         qint64 id = soc->socketDescriptor();
-        qDebug() << "SOCKS5 connected: " << id << "\n";
+        std::cout << prefix << "SOCKS5 connected: " << id << "\n";
 
         socketMap.insert(id, soc);
         chat->AddNewOne(id);
@@ -225,7 +222,7 @@ void Connection::slotConnectSOCKS5(QString addr, quint16 port)
     }
     else
     {
-        qDebug() << "SOCKS5 does not answer\n";
+        std::cout << prefix << "SOCKS5 does not answer\n";
         soc->close();
         delete soc;
    }
@@ -236,7 +233,7 @@ void Connection::slotConnectSuccess()
     QTcpSocket *soc = (QTcpSocket *)QObject::sender();
     qint64 id = soc->socketDescriptor();
 
-    qDebug() << "\nConnected: " << id << "\n";
+    std::cout << prefix << "Connected: " << id << "\n";
 
     socketMap.insert(id, soc);
     chat->AddNewOne(id);
@@ -255,7 +252,7 @@ void Connection::slotWrite(qint64 id, QString message)
         chat->AddToChat(id, "To", message);
     }
     else
-        qDebug() << "No socket" << id << "exists";
+        std::cout << prefix << "No socket" << id << "exists";
 }
 
 void Connection::slotDisconnect(qint64 id)
@@ -286,7 +283,7 @@ void Connection::CheckUp()
     {
         if (soc.value()->state() == QAbstractSocket::UnconnectedState)
         {
-            qDebug() << "Socket " << soc.key() << " disconnected\n";
+            std::cout << prefix << "Socket " << soc.key() << " disconnected\n";
             disconnectedSockets.push_back(soc.key());
         }
     }
