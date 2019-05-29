@@ -46,6 +46,7 @@ private:
     QEventLoop *loop = nullptr;
     QTcpServer *server = nullptr;
     QMap<qint64, QTcpSocket *> socketMap;
+    QMap<qint64, QTcpSocket *> WaitingForConfirmation;
     QProcess *tor = nullptr;
     Chat *chat = nullptr;
     // In UNIX will be used just "tor" command

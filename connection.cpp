@@ -11,12 +11,9 @@
 #include <QDir>
 
 QString connectReq = "admesconnectrequest";
-QString connectResp = "admesconnectrequest";
+QString connectResp = "admesconnectresponse";
 
-Connection::Connection(QObject *parent) : QObject(parent)
-{
-
-}
+Connection::Connection(QObject *parent) : QObject(parent) {}
 
 void Connection::slotConnectionExec()
 {
@@ -140,12 +137,12 @@ void Connection::slotNewConnection()
 {
     QTcpSocket *tmp = server->nextPendingConnection();
     qint64 id = tmp->socketDescriptor();
-    socketMap.insert(id, tmp);
+    WaitingForConfirmation.insert(id, tmp);
 
     std::cout << prefix << "New conncetion at socket " << id << "\n";
-    connect(socketMap[id], SIGNAL(readyRead()), this, SLOT(slotRead()));
-    connect(socketMap[id], SIGNAL(disconnected()), this, SLOT(slotDisconnectWarning()));
-    connect(socketMap[id], SIGNAL(disconnected()), socketMap[id], SLOT(deleteLater()));
+    connect(tmp, SIGNAL(readyRead()), this, SLOT(slotRead()));
+    connect(tmp, SIGNAL(disconnected()), this, SLOT(slotDisconnectWarning()));
+    connect(tmp, SIGNAL(disconnected()), tmp, SLOT(deleteLater()));
 }
 
 void Connection::slotRead()
@@ -159,14 +156,19 @@ void Connection::slotRead()
     // and move to another scoupe
     if (!message.compare(connectReq))
     {
-        if (soc->write(connectResp.toLocal8Bit()) == connectResp.length())
+        if (soc->write(connectResp.toLocal8Bit()) == connectResp.length() ||
+            soc->write(connectResp.toLocal8Bit()) == connectResp.length() ||
+            soc->write(connectResp.toLocal8Bit()) == connectResp.length() )
         {
             std::cout << prefix << "The connection (" << id << ") is established\n";
+            socketMap.insert(id, WaitingForConfirmation[id]);
+            WaitingForConfirmation.remove(id);
             chat->AddNewOne(id);
         }
         else
         {
             std::cout << prefix << "Connection failure\n";
+            WaitingForConfirmation.remove(id);
             soc->disconnect();
             return;
         }
@@ -174,6 +176,8 @@ void Connection::slotRead()
     else if (!message.compare(connectResp))
     {
         std::cout << prefix << "The connection (" << id << ") is established\n";
+        socketMap.insert(id, WaitingForConfirmation[id]);
+        WaitingForConfirmation.remove(id);
         chat->AddNewOne(id);
     }
     else
@@ -191,7 +195,10 @@ void Connection::slotConnect(QString adr, quint16 port)
 void Connection::AdmesConnectionRequest(QTcpSocket *soc)
 {
     qint64 id = soc->socketDescriptor();
-    if (soc->write(connectReq.toLocal8Bit()) != connectReq.length())
+    // Three attempts to send
+    if (soc->write(connectReq.toLocal8Bit()) != connectReq.length() &&
+        soc->write(connectReq.toLocal8Bit()) != connectReq.length() &&
+        soc->write(connectReq.toLocal8Bit()) != connectReq.length())
     {
         std::cout << "Connection failure\n";
     }
@@ -199,10 +206,11 @@ void Connection::AdmesConnectionRequest(QTcpSocket *soc)
     {
         std::cout << prefix << "New conncetion at socket " << id << "\n";
 
-        socketMap.insert(id, soc);
-        connect(socketMap[id], SIGNAL(readyRead()), this, SLOT(slotRead()));
-        connect(socketMap[id], SIGNAL(disconnected()), this, SLOT(slotDisconnectWarning()));
-        connect(socketMap[id], SIGNAL(disconnected()), socketMap[id], SLOT(deleteLater()));
+        //socketMap.insert(id, soc);
+        WaitingForConfirmation.insert(id, soc);
+        connect(soc, SIGNAL(readyRead()), this, SLOT(slotRead()));
+        connect(soc, SIGNAL(disconnected()), this, SLOT(slotDisconnectWarning()));
+        connect(soc, SIGNAL(disconnected()), soc, SLOT(deleteLater()));
     }
 }
 
@@ -273,8 +281,13 @@ void Connection::slotWrite(qint64 id, QString message)
 {
     if (socketMap.contains(id))
     {
-        if (socketMap[id]->write(message.toLocal8Bit()) == message.length())
+        // Three attempts to send
+        if (socketMap[id]->write(message.toLocal8Bit()) == message.length() ||
+            socketMap[id]->write(message.toLocal8Bit()) == message.length() ||
+            socketMap[id]->write(message.toLocal8Bit()) == message.length() )
+        {
             chat->AddToChat(id, "To", message);
+        }
         else
             std::cout << prefix << "Sending failure\n";
     }
