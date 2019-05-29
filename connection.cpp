@@ -10,6 +10,9 @@
 #include "common.h"
 #include <QDir>
 
+QString connectReq = "admesconnectrequest";
+QString connectResp = "admesconnectrequest";
+
 Connection::Connection(QObject *parent) : QObject(parent)
 {
 
@@ -138,28 +141,43 @@ void Connection::slotNewConnection()
     QTcpSocket *tmp = server->nextPendingConnection();
     qint64 id = tmp->socketDescriptor();
     socketMap.insert(id, tmp);
-    chat->AddNewOne(id);
 
-    std::cout << prefix << "New Conncetion: " << id << "\n";
-
+    std::cout << prefix << "New conncetion at socket " << id << "\n";
     connect(socketMap[id], SIGNAL(readyRead()), this, SLOT(slotRead()));
     connect(socketMap[id], SIGNAL(disconnected()), this, SLOT(slotDisconnectWarning()));
     connect(socketMap[id], SIGNAL(disconnected()), socketMap[id], SLOT(deleteLater()));
-
-    tmp = nullptr;
 }
 
 void Connection::slotRead()
 {
     QTcpSocket *soc = (QTcpSocket *)QObject::sender();
     qint64 id = soc->socketDescriptor();
-
     QString message = QString().fromLocal8Bit(soc->readAll());
 
-    chat->AddToChat(id, "From", message);
-
-    if (message == "HelloFromTor")
-        soc->write("MirrorHello");
+    // Connection establishing
+    // Need to make this a part of a protocol
+    // and move to another scoupe
+    if (!message.compare(connectReq))
+    {
+        if (soc->write(connectResp.toLocal8Bit()) == connectResp.length())
+        {
+            std::cout << prefix << "The connection (" << id << ") is established\n";
+            chat->AddNewOne(id);
+        }
+        else
+        {
+            std::cout << prefix << "Connection failure\n";
+            soc->disconnect();
+            return;
+        }
+    }
+    else if (!message.compare(connectResp))
+    {
+        std::cout << prefix << "The connection (" << id << ") is established\n";
+        chat->AddNewOne(id);
+    }
+    else
+        chat->AddToChat(id, "From", message);
 }
 
 void Connection::slotConnect(QString adr, quint16 port)
@@ -168,6 +186,24 @@ void Connection::slotConnect(QString adr, quint16 port)
     soc->connectToHost(adr, port);
 
     connect(soc, SIGNAL(connected()), this, SLOT(slotConnectSuccess()));
+}
+
+void Connection::AdmesConnectionRequest(QTcpSocket *soc)
+{
+    qint64 id = soc->socketDescriptor();
+    if (soc->write(connectReq.toLocal8Bit()) != connectReq.length())
+    {
+        std::cout << "Connection failure\n";
+    }
+    else
+    {
+        std::cout << prefix << "New conncetion at socket " << id << "\n";
+
+        socketMap.insert(id, soc);
+        connect(socketMap[id], SIGNAL(readyRead()), this, SLOT(slotRead()));
+        connect(socketMap[id], SIGNAL(disconnected()), this, SLOT(slotDisconnectWarning()));
+        connect(socketMap[id], SIGNAL(disconnected()), socketMap[id], SLOT(deleteLater()));
+    }
 }
 
 void Connection::slotConnectSOCKS5(QString addr, quint16 port)
@@ -186,6 +222,10 @@ void Connection::slotConnectSOCKS5(QString addr, quint16 port)
         if (response[1] != 0x00)
         {
             std::cout << prefix << "SOCKS5 error authentificating\n";
+            std::cout << prefix << "SOCKS5 response: ";
+            HexOutput(QByteArray(response), ' ', 2);
+            std::cout << '\n';
+
             soc->close();
             delete soc;
             return;
@@ -211,18 +251,13 @@ void Connection::slotConnectSOCKS5(QString addr, quint16 port)
         }
 
         qint64 id = soc->socketDescriptor();
-        std::cout << prefix << "SOCKS5 connected: " << id << "\n";
+        std::cout << prefix << "SOCKS5 connected at socket " << id << "\n";
 
-        socketMap.insert(id, soc);
-        chat->AddNewOne(id);
-        soc->write("HelloFromTor");
-        connect(socketMap[id], SIGNAL(readyRead()), this, SLOT(slotRead()));
-        connect(socketMap[id], SIGNAL(disconnected()), this, SLOT(slotDisconnectWarning()));
-        connect(socketMap[id], SIGNAL(disconnected()), socketMap[id], SLOT(deleteLater()));
+        AdmesConnectionRequest(soc);
     }
     else
     {
-        std::cout << prefix << "SOCKS5 does not answer\n";
+        std::cout << prefix << "SOCKS5 server does not answer\n";
         soc->close();
         delete soc;
    }
@@ -231,25 +266,17 @@ void Connection::slotConnectSOCKS5(QString addr, quint16 port)
 void Connection::slotConnectSuccess()
 {
     QTcpSocket *soc = (QTcpSocket *)QObject::sender();
-    qint64 id = soc->socketDescriptor();
-
-    std::cout << prefix << "Connected: " << id << "\n";
-
-    socketMap.insert(id, soc);
-    chat->AddNewOne(id);
-    connect(socketMap[id], SIGNAL(readyRead()), this, SLOT(slotRead()));
-    connect(socketMap[id], SIGNAL(disconnected()), this, SLOT(slotDisconnectWarning()));
-    connect(socketMap[id], SIGNAL(disconnected()), socketMap[id], SLOT(deleteLater()));
-
-    soc = nullptr;
+    AdmesConnectionRequest(soc);
 }
 
 void Connection::slotWrite(qint64 id, QString message)
 {
     if (socketMap.contains(id))
     {
-        socketMap[id]->write(message.toStdString().c_str());
-        chat->AddToChat(id, "To", message);
+        if (socketMap[id]->write(message.toLocal8Bit()) == message.length())
+            chat->AddToChat(id, "To", message);
+        else
+            std::cout << prefix << "Sending failure\n";
     }
     else
         std::cout << prefix << "No socket" << id << "exists";

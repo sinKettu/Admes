@@ -41,6 +41,7 @@ public slots:
 
 private:
     void CheckUp();
+    void AdmesConnectionRequest(QTcpSocket *);
 
     QEventLoop *loop = nullptr;
     QTcpServer *server = nullptr;
