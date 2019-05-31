@@ -28,6 +28,7 @@ public slots:
     void slotDisconnectWarning();
     void slotOutputDialog(qint64);
     void slotCloseDialog();
+    void slotRunTor();
 
 #ifdef _WIN32
 
@@ -42,6 +43,7 @@ public slots:
 private:
     void CheckUp();
     void AdmesConnectionRequest(QTcpSocket *);
+    void RunTor();
 
     QEventLoop *loop = nullptr;
     QTcpServer *server = nullptr;
@@ -49,6 +51,8 @@ private:
     QMap<qint64, QTcpSocket *> WaitingForConfirmation;
     QProcess *tor = nullptr;
     Chat *chat = nullptr;
+    quint16 server_port = 4242;
+    quint16 socks5_port = 9050;
     // In UNIX will be used just "tor" command
     //      (tor should be installed)
     // In Windows user should specify path to tor.exe

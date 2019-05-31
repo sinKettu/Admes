@@ -18,6 +18,7 @@ Control::Control(QObject *parent) : QObject(parent)
     connect(this, SIGNAL(sigDisconnect(qint64)),        connection, SLOT(slotDisconnect(qint64)));
     connect(this, SIGNAL(sigOutputDialog(qint64)),      connection, SLOT(slotOutputDialog(qint64)));
     connect(this, SIGNAL(sigCloseDialog()),             connection, SLOT(slotCloseDialog()));
+    connect(this, SIGNAL(sigRunTor()),                  connection, SLOT(slotRunTor()));
 #ifdef _WIN32
     connect(this, SIGNAL(sigSpecifyTorPath(QString)),   connection, SLOT(slotSpecifyTorPath(QString)));
 #elif _WIN64
@@ -65,6 +66,11 @@ void Control::OutputDialog(qint64 id)
 void Control::CloseDialog()
 {
     emit sigCloseDialog();
+}
+
+void Control::RunTor()
+{
+    emit sigRunTor();
 }
 
 #ifdef _WIN32

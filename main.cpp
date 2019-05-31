@@ -135,6 +135,93 @@ int main(int argc, char *argv[])
                 continue;
             }
         }
+        if (!commands[0].compare("/tor") && commands.length() >= 2)
+        {
+            if (!commands[1].compare("/check") && commands.length() == 2)
+            {
+                if (TorIsRunning())
+                {
+                    std::cout << prefix << "Tor is running\n";
+                }
+                else
+                {
+                    std::cout << prefix << "Tor is not running\n";
+                }
+            }
+            else if (!commands[1].compare("/kill") && commands.length() == 2)
+            {
+                if (KillTor())
+                {
+                    std::cout << prefix << "Tor process was killed\n";
+                }
+                else
+                {
+                    std::cout << prefix << "Couldn't find or kill tor process\n";
+                }
+            }
+            else if (!commands[1].compare("/start") && commands.length() == 2)
+            {
+                // code here
+            }
+            else if (!commands[1].compare("configure") && (commands.length() == 4 || commands.length() == 6))
+            {
+                quint16 soc = 0;
+                quint16 ser = 0;
+                if (!commands[2].compare("socks"))
+                {
+                    soc = commands[3].toUShort();
+                    if (!soc)
+                    {
+                        std::cout << prefix << "Incorrect SOCKS5 port\n";
+                        continue;
+                    }
+                }
+                else if (!commands[2].compare("port"))
+                {
+                    ser = commands[3].toUShort();
+                    if (!ser)
+                    {
+                        std::cout << prefix << "Incorrect port to listen\n";
+                        continue;
+                    }
+                }
+
+                if (commands.length() == 6 && !commands[4].compare("socks"))
+                {
+                    if (soc)
+                    {
+                        std::cout << prefix << "Double definition for SOCKS5 port\n";
+                        continue;
+                    }
+                    soc = commands[5].toUShort();
+                    if (!soc)
+                    {
+                        std::cout << prefix << "Incorrect SOCKS5 port\n";
+                        continue;
+                    }
+                }
+                else if (commands.length() == 6 && !commands[4].compare("port"))
+                {
+                    if (ser)
+                    {
+                        std::cout << prefix << "Double definition for port to listen\n";
+                        continue;
+                    }
+                    ser = commands[5].toUShort();
+                    if (!ser)
+                    {
+                        std::cout << prefix << "Incorrect port to listen\n";
+                        continue;
+                    }
+                }
+
+                if (soc || ser)
+                {
+                    // code here
+                    continue;
+                }
+            }
+        }
         if (commands[0].compare("/connect") == 0 && commands.length() >= 3)
         {
             if (commands[1].compare("tor") == 0 && commands.length() == 4)

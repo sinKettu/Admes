@@ -40,6 +40,82 @@ void Connection::slotStartServer(quint16 port)
     connect(server, SIGNAL(newConnection()), this, SLOT(slotNewConnection()));
 }
 
+void Connection::RunTor()
+{
+    tor = new QProcess();
+    tor->setProgram(tor_path);
+    QDir tor_conf = QDir::current().absolutePath() + "/tor_config";
+    if (!tor_conf.exists() && !QDir::current().mkdir("tor_config"))
+    {
+        std::cout << prefix << "Can't create " << tor_conf.absolutePath().toStdString() << "\n";
+        delete tor;
+        return;
+    }
+
+    QStringList args;
+    args << "-f" << tor_conf.absolutePath() + "/torrc";
+    tor->setArguments(args);
+    QFile fout(tor_conf.absolutePath() + "/torrc");
+    
+    if (!fout.open(QIODevice::WriteOnly))
+    {
+        std::cout << prefix << "Can't create torrc file\n";
+        delete tor;
+        return;
+    }
+    
+    QString tmp = "SOCKSPort " + QString::number(socks5_port) + "\n";
+    fout.write(tmp.toLatin1());
+    std::cout << prefix << "SOCKS5 port is" + QString::number(socks5_port).toStdString() + "\n";
+
+    tmp = "HiddenServiceDir " + tor_conf.absolutePath() + "/service\n";
+    fout.write(tmp.toLatin1());
+    std::cout << prefix << "Hidden service directory is " << tor_conf.absolutePath().toStdString() + "/service\n";
+
+    QString strPort = QString::number(server_port);
+    tmp = "HiddenServicePort " + strPort + " 127.0.0.1:" + strPort + "\n";
+    fout.write(tmp.toLatin1());
+    std::cout << prefix << "Service will listen to port " << strPort.toStdString() << "\n";
+
+    fout.close();
+
+    if (!tor->open(QIODevice::ReadOnly))
+    {
+        std::cout << prefix << "Can't start tor\n";
+        tor->close();
+        delete tor;
+        return;
+    }
+
+    tor->waitForFinished(5500);
+    if (tor->state() == QProcess::NotRunning)
+    {
+        std::cout << prefix << "Tor ran with error\n";
+        QStringList torOutput = QString().fromLocal8Bit(tor->readAll()).split('\n');
+        for (uint32_t i = 0; i < torOutput.length(); i++)
+            std::cout << "[TOR] " << torOutput[i].toStdString() << "\n";
+            
+        tor->close();
+        delete tor;
+        return;
+    }
+
+    QFile fin(tor_conf.absolutePath() + "/service/hostname", this);
+    if (!fin.open(QIODevice::ReadOnly))
+    {
+        std::cout << prefix << "Couldn't read tor service hostname\n";
+        tor->close();
+        delete tor;
+        return;
+    }
+    else
+    {
+        tmp = QString().fromLocal8Bit(fin.readLine());
+        std::cout << prefix << "Tor service hostname: " << tmp.mid(0, tmp.length() - 1).toStdString() << "\n";
+        fin.close();
+    }
+}
+
 void Connection::slotStartTorServer(quint16 port)
 {
     tor = new QProcess();
