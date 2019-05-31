@@ -1,15 +1,32 @@
-Ассинхронный P2P-коннектор на базе Qt5.
+Admes - Advanced Messenger.
+Asynchronous P2P connector based on Qt5.
 
-На данный момент имеется возможность прослушивать входящие соединения, устанавливать соединения
-обмениваться текстовыми данными.
+Current program features:
+- Sending and receiving data (messages);
+- Dialog (chat) for each connection;
+- Working using real IPs (can be useful in LAN);
+- Working using TOR network (to connect over NAT);
+- Cross-platform;
 
-Дальнейшее развитие: работа через сеть Tor и пробитие NAT при помощи STUNT.
+Comming program features:
+- End-to-end encryption;
+- Unique pair of public and private ECC keys to verify user identity;
+- Working using STUNT (to connect over NAT);
+- UI (ncurses);
+- GUI (QT Widget);
+- ...
 
-Сборка при помощи qmake + make или через Qt Creator
+Build and compile:
+You need Qt5 Framework and TOR (Expert Bundle) installed on your PC.
+- Use qmake + make to build and compile.
+    Build script example for Linux:
 
-В программе введите "/help" для справки
+    mkdir build || cd build
+    qmake -o Makefile ../admes.pro
+    make
 
-TODO: 
--       очистка памятся
--       Имеются проблемы при запуске TOR на файловой системе NTFS
--       Имеются проблемы при запуске TOR по пути с русскими символами
+- Use QtCreator to build and compile (recomended for Windows).
+
+To get help enter "/help" in the program.
+
+Copyright © Andrey Ivanov, 2019.
