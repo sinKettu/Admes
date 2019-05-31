@@ -24,7 +24,6 @@ You need Qt5 Framework and TOR (Expert Bundle) installed on your PC.
     mkdir build || cd build
     qmake -o Makefile ../admes.pro
     make
-
 - Use QtCreator to build and compile (recomended for Windows).
 
 To get help enter "/help" in the program.
