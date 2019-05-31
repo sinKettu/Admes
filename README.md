@@ -18,12 +18,14 @@ Comming program features:
 
 Build and compile:
 You need Qt5 Framework and TOR (Expert Bundle) installed on your PC.
+
 - Use qmake + make to build and compile.
     Build script example for Linux:
 
     mkdir build || cd build
     qmake -o Makefile ../admes.pro
     make
+
 - Use QtCreator to build and compile (recomended for Windows).
 
 To get help enter "/help" in the program.
