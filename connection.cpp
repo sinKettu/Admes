@@ -8,7 +8,6 @@
 
 #include "connection.h"
 #include "common.h"
-#include <QDir>
 
 QString connectReq = "admesconnectrequest";
 QString connectResp = "admesconnectresponse";
@@ -22,11 +21,11 @@ void Connection::slotConnectionExec()
     loop->exec();
 }
 
-void Connection::slotStartServer(quint16 port)
+void Connection::slotStartServer()
 {
     server = new QTcpServer();
 
-    if (!server->listen(QHostAddress::Any, port))
+    if (!server->listen(QHostAddress::Any, server_port))
     {
         std::cout << prefix << "Server is not started\n";
 
@@ -35,12 +34,12 @@ void Connection::slotStartServer(quint16 port)
         return;
     }
 
-    std::cout << prefix << "Server is started\n";
+    std::cout << prefix << "Server is started at port " << server_port << "\n";
 
     connect(server, SIGNAL(newConnection()), this, SLOT(slotNewConnection()));
 }
 
-void Connection::RunTor()
+void Connection::slotRunTor()
 {
     tor = new QProcess();
     tor->setProgram(tor_path);
@@ -66,7 +65,7 @@ void Connection::RunTor()
     
     QString tmp = "SOCKSPort " + QString::number(socks5_port) + "\n";
     fout.write(tmp.toLatin1());
-    std::cout << prefix << "SOCKS5 port is" + QString::number(socks5_port).toStdString() + "\n";
+    std::cout << prefix << "SOCKS5 port is " + QString::number(socks5_port).toStdString() + "\n";
 
     tmp = "HiddenServiceDir " + tor_conf.absolutePath() + "/service\n";
     fout.write(tmp.toLatin1());
@@ -294,7 +293,7 @@ void Connection::slotConnectSOCKS5(QString addr, quint16 port)
 {
     std::cout << prefix << "Connecting to SOCKS server\n";
     QTcpSocket *soc = new QTcpSocket();
-    soc->connectToHost("127.0.0.1", (quint16)9050);
+    soc->connectToHost("127.0.0.1", socks5_port);
 
     if (soc->waitForConnected(5000))
     {
@@ -408,6 +407,18 @@ void Connection::CheckUp()
         chat->Remove(disconnectedSockets.at(index));
         socketMap.remove(disconnectedSockets.at(index));
     }
+}
+
+void Connection::slotSpecifyPortForListening(quint16 port)
+{
+    server_port = port;   
+    std::cout << prefix << "Admes will listen to port " << port << "\n";
+}
+
+void Connection::slotSpecifyPortForSOCKS5(quint16 port)
+{
+    socks5_port = port;
+    std::cout << prefix << "SOCKS5 service will listen to port " << port << "\n";
 }
 
 #ifdef _WIN32

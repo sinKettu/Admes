@@ -9,7 +9,7 @@ class Control : public QObject
     Q_OBJECT
 public:
     explicit Control(QObject *parent = nullptr);
-    void StartServer(quint16 port);
+    void StartServer();
     void StartTorServer(quint16 port);
     void Send(qint64 id, QString message);
     void ConnectTo(QString adr, quint16 port);
@@ -18,6 +18,8 @@ public:
     void OutputDialog(qint64 id);
     void CloseDialog();
     void RunTor();
+    void SpecifyPortForListening(quint16 port);
+    void SpecifyPortForSOCKS5(quint16 port);
 #ifdef _WIN32
     void SpecifyTorPath(QString path);
 #elif _WIN64
@@ -25,7 +27,7 @@ public:
 #endif
 
 signals:
-    void sigStartServer(quint16);
+    void sigStartServer();
     void sigStartTorServer(quint16 port);
     void sigWrite(qint64, QString);
     void sigConnect(QString, quint16);
@@ -34,6 +36,8 @@ signals:
     void sigOutputDialog(qint64 id);
     void sigCloseDialog();
     void sigRunTor();
+    void sigSpecifyPortForListening(quint16);
+    void sigSpecifyPortForSOCKS5(quint16);
 #ifdef _WIN32
     void sigSpecifyTorPath(QString);
 #elif _WIN64

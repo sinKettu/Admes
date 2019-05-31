@@ -16,7 +16,7 @@ public:
 
 public slots:
     void slotConnectionExec();
-    void slotStartServer(quint16);
+    void slotStartServer();
     void slotStartTorServer(quint16);
     void slotNewConnection();
     void slotRead();
@@ -29,6 +29,8 @@ public slots:
     void slotOutputDialog(qint64);
     void slotCloseDialog();
     void slotRunTor();
+    void slotSpecifyPortForListening(quint16 port);
+    void slotSpecifyPortForSOCKS5(quint16 port);
 
 #ifdef _WIN32
 
@@ -43,7 +45,6 @@ public slots:
 private:
     void CheckUp();
     void AdmesConnectionRequest(QTcpSocket *);
-    void RunTor();
 
     QEventLoop *loop = nullptr;
     QTcpServer *server = nullptr;

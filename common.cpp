@@ -43,12 +43,16 @@ void HexOutput(QByteArray buf, char separator='\0', qint32 n=INT32_MAX)
 bool TorIsRunning()
 {
     QString cmdline = "/stat";
-    QDirIterator iter("/proc", QDir::Files, QDirIterator::Subdirectories);
+    QDirIterator iter("/proc", QDirIterator::Subdirectories);
     bool result = false;
     
     while (iter.hasNext())
     {
-        QFile fin = QFile(iter.next() + cmdline);
+        QString tmp = iter.next();
+        if (!tmp.split('/').at(2).toUShort())
+            continue;
+        tmp = iter.next() + cmdline;
+        QFile fin(tmp);
         if (fin.open(QIODevice::ReadOnly))
         {
             QString line = QString::fromLocal8Bit(fin.readLine());
@@ -57,8 +61,8 @@ bool TorIsRunning()
             fin.close();
             if (left >= 0 && right > 0 && right > left)
             {
-                QString tmp = line.mid(left + 1, right - left - 1);
-                if (line.compare("tor"))
+                tmp = line.mid(left + 1, right - left - 1);
+                if (tmp.compare("tor"))
                     continue;
                 
                 torPid = line.split(' ')[0].toUInt();
@@ -73,18 +77,17 @@ bool TorIsRunning()
 
 bool KillTor()
 {
-    if (torPid == 0 && !TorIsRunning())
-    {
-        return false;
-    }
-    else
-    {
-        kill(torPid, SIGKILL);
-        QFile tmp = QFile("/proc/" + QString::number(torPid) + "/stat");
-        bool result = tmp.open(QIODevice::ReadOnly);
-        tmp.close();
-        return !result;
-    }
+    if (torPid == 0)
+        TorIsRunning();
+
+    kill(torPid, SIGKILL);
+    QThread::sleep(1);
+    QString str = "/proc/" + QString::number(static_cast<quint32>(torPid)) + "/stat";
+    QFile tmp(str);
+    bool result = tmp.open(QIODevice::ReadOnly);
+    tmp.close();
+    return !result;
+    
 }
 
 #endif

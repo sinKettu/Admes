@@ -1,7 +1,5 @@
 #include <QCoreApplication>
-#include <QString>
 #include <QTextStream>
-#include <QFile>
 #include "control.h"
 #include "common.h"
 
@@ -29,6 +27,7 @@ void help()
     std::cout << "/disconnect descriptor -- disconnecting socket 'descriptor', clearing all message history with it\n";
     /* /exit */
     std::cout << "/exit -- close the program\n";
+    // TODO: Add new commands (/tor and /configure)
 
     std::cout << "\nThanks for using 'admes'\n";
     std::cout << "\n-============================================================================================-\n";
@@ -58,168 +57,107 @@ int main(int argc, char *argv[])
             help();
             continue;
         }
-        if (commands[0].compare("/open") == 0 && commands.length() >= 2)
+        if (commands[0].compare("/open") == 0 && commands.length() == 1)
         {
-            if (commands[1].compare("tor") == 0 && commands.length() == 3)
-            {
-            #ifdef _WIN32
-
-                std::cout << prefix << "It seems like you use windows\n";
-                std::cout << prefix << "Please, specify path to tor.exe\n";
-                std::cout << prefix << "Type '/back' to return to interpreter\n";
-
-                QString tor_path = qin.readLine();
-                bool valid = false;
-                while (true)        // Упростить?
-                {
-                    valid = QFile(tor_path).exists();
-                    if (valid)
-                        break;
-                    else if (tor_path.compare("/back") == 0)
-                        break;
-                    else
-                    {
-                        std::cout << prefix << "No such file exists\n";
-                        std::cout << prefix << "Try again\n";
-                        tor_path = qin.readLine();
-                    }
-                }
-
-                if (!valid)
-                {
-                    HighLight(QString("admes is ready to interpret your commands!"));
-                    continue;
-                }
-
-                c->SpecifyTorPath(tor_path);
-
-            #elif _WIN64
-
-                std::cout << prefix << "It seems like you use windows\n";
-                std::cout << prefix << "Please, specify path to tor.exe\n";
-                std::cout << prefix << "Type '/back' to return to interpreter\n";
-
-                QString tor_path = qin.readLine();
-                bool valid = false;
-                while (true)        // Упростить?
-                {
-                    valid = QFile(tor_path).exists();
-                    if (valid)
-                        break;
-                    else if (tor_path.compare("/back") == 0)
-                        break;
-                    else
-                    {
-                        std::cout << prefix << "No such file exists\n";
-                        std::cout << prefix << "Try again\n";
-                        tor_path = qin.readLine();
-                    }
-                }
-
-                if (!valid)
-                {
-                    HighLight(QString("admes is ready to interpret your commands!"));
-                    continue;
-                }
-
-                c->SpecifyTorPath(tor_path);
-
-            #endif
-
-                c->StartTorServer(commands[2].toUShort());
-                continue;
-            }
-            else if (commands[1].compare("tor") && commands.length() == 2)
-            {
-                c->StartServer(commands[1].toUShort());
-                continue;
-            }
+            c->StartServer();
         }
         if (!commands[0].compare("/tor") && commands.length() >= 2)
         {
-            if (!commands[1].compare("/check") && commands.length() == 2)
+            if (!commands[1].compare("check") && commands.length() == 2)
             {
                 if (TorIsRunning())
                 {
                     std::cout << prefix << "Tor is running\n";
+                    continue;
                 }
                 else
                 {
                     std::cout << prefix << "Tor is not running\n";
+                    continue;
                 }
             }
-            else if (!commands[1].compare("/kill") && commands.length() == 2)
+            else if (!commands[1].compare("kill") && commands.length() == 2)
             {
                 if (KillTor())
                 {
                     std::cout << prefix << "Tor process was killed\n";
+                    continue;
                 }
                 else
                 {
                     std::cout << prefix << "Couldn't find or kill tor process\n";
-                }
-            }
-            else if (!commands[1].compare("/start") && commands.length() == 2)
-            {
-                // code here
-            }
-            else if (!commands[1].compare("configure") && (commands.length() == 4 || commands.length() == 6))
-            {
-                quint16 soc = 0;
-                quint16 ser = 0;
-                if (!commands[2].compare("socks"))
-                {
-                    soc = commands[3].toUShort();
-                    if (!soc)
-                    {
-                        std::cout << prefix << "Incorrect SOCKS5 port\n";
-                        continue;
-                    }
-                }
-                else if (!commands[2].compare("port"))
-                {
-                    ser = commands[3].toUShort();
-                    if (!ser)
-                    {
-                        std::cout << prefix << "Incorrect port to listen\n";
-                        continue;
-                    }
-                }
-
-                if (commands.length() == 6 && !commands[4].compare("socks"))
-                {
-                    if (soc)
-                    {
-                        std::cout << prefix << "Double definition for SOCKS5 port\n";
-                        continue;
-                    }
-                    soc = commands[5].toUShort();
-                    if (!soc)
-                    {
-                        std::cout << prefix << "Incorrect SOCKS5 port\n";
-                        continue;
-                    }
-                }
-                else if (commands.length() == 6 && !commands[4].compare("port"))
-                {
-                    if (ser)
-                    {
-                        std::cout << prefix << "Double definition for port to listen\n";
-                        continue;
-                    }
-                    ser = commands[5].toUShort();
-                    if (!ser)
-                    {
-                        std::cout << prefix << "Incorrect port to listen\n";
-                        continue;
-                    }
-                }
-
-                if (soc || ser)
-                {
-                    // code here
                     continue;
                 }
+            }
+            else if (!commands[1].compare("start") && commands.length() == 2)
+            {
+                c->RunTor();
+                continue;
+            }
+        }
+        else if (!commands[0].compare("configure") && (commands.length() == 3 || commands.length() == 5))
+        {
+            quint16 soc = 0;
+            quint16 ser = 0;
+            if (!commands[1].compare("socks"))
+            {
+                soc = commands[2].toUShort();
+                if (!soc)
+                {
+                    std::cout << prefix << "Incorrect SOCKS5 port\n";
+                    continue;
+                }
+            }
+            else if (!commands[1].compare("port"))
+            {
+                ser = commands[2].toUShort();
+                if (!ser)
+                {
+                    std::cout << prefix << "Incorrect port to listen\n";
+                    continue;
+                }
+            }
+
+            if (commands.length() == 5 && !commands[3].compare("socks"))
+            {
+                if (soc)
+                {
+                    std::cout << prefix << "Double definition for SOCKS5 port\n";
+                    continue;
+                }
+                soc = commands[4].toUShort();
+                if (!soc)
+                {
+                    std::cout << prefix << "Incorrect SOCKS5 port\n";
+                    continue;
+                }
+            }
+            else if (commands.length() == 5 && !commands[3].compare("port"))
+            {
+                if (ser)
+                {
+                    std::cout << prefix << "Double definition for port to listen\n";
+                    continue;
+                }
+                ser = commands[4].toUShort();
+                if (!ser)
+                {
+                    std::cout << prefix << "Incorrect port to listen\n";
+                    continue;
+                }
+            }
+
+            if (soc || ser)
+            {
+                if (ser)
+                {
+                    c->SpecifyPortForListening(ser);
+                }
+                if (soc)
+                {
+                    c->SpecifyPortForSOCKS5(soc);
+                }
+                continue;
             }
         }
         if (commands[0].compare("/connect") == 0 && commands.length() >= 3)
