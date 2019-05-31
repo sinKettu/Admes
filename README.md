@@ -18,6 +18,7 @@ Asynchronous P2P connector based on Qt5.
 
 ## Build and compile:
 You need Qt5 Framework and TOR (Expert Bundle) installed on your PC.
+Tested Qt5 versions: from 10.0
 
 Use qmake + make to build and compile.
 Build script example for Linux:
