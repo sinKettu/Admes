@@ -13,6 +13,7 @@ class Connection : public QObject
     Q_OBJECT
 public:
     explicit Connection(QObject *parent = nullptr);
+    ~Connection();
 
 signals:
     void sigTerminateThread();

@@ -19,7 +19,7 @@ void Connection::slotConnectionExec()
     chat = new Chat();
 }
 
-void Connection::slotStopAll()
+Connection::~Connection()
 {
     if (server != nullptr)
     {
@@ -38,7 +38,11 @@ void Connection::slotStopAll()
     WaitingForConfirmation.clear();
     socketMap.clear();
     delete chat;
+}
 
+void Connection::slotStopAll()
+{
+    this->~Connection();
     emit sigTerminateThread();
 }
 

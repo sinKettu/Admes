@@ -1,3 +1,4 @@
+#include <QObject>
 #include <QCoreApplication>
 #include <QTextStream>
 #include "control.h"
@@ -5,32 +6,35 @@
 
 void help()
 {
-    std::cout << "-========================================== H E L P =========================================-\n\n";
+    std::cout << "-==================================================== H E L P ===================================================-\n\n";
     std::cout << "Welcome to 'admes', asynchronous P2P private messanger!\n";
     std::cout << "The program still is under development, please remember this\n\n";
     std::cout << "You can control (give commands) the program with placing '/' at the beginning of input line\n";
     std::cout << "Available commands (commands in '<...>' are optional):\n\n";
     /* /open ... */
-    std::cout << "/open <tor> port -- starting a server listening to 'port' for incomming connections\n";
-    std::cout << "\t\tif you are specifying 'tor', the program will run tor hidden service\n";
+    std::cout << "/open -- starting a server listening to specified port for incomming connections\n\n";
     /* /connect ... */
-    std::cout << "/connect <tor> address port -- connecting to 'address':'port'\n";
+    std::cout << "/connect <tor> 'address' 'port' -- connecting to 'address':'port'\n";
     std::cout << "\t\tif you are specifying 'tor', you should specify tor hidden service address at 'address',\n";
-    std::cout << "\t\tand the program will connect to this\n";
+    std::cout << "\t\tand the program will connect to this\n\n";
     /* /chat ... */
-    std::cout << "/chat descriptor -- starting a chat mode with socket (connection) 'descriptor'\n";
+    std::cout << "/chat 'descriptor' -- starting a chat mode with socket (connection) 'descriptor'\n";
     std::cout << "\t\tIn the chat mode all your input without '/' at beginning of input line\n";
-    std::cout << "\t\twill be considered as outcomming message to 'descriptor'\n";
+    std::cout << "\t\twill be considered as outcomming message to 'descriptor'\n\n";
     /* /close */
-    std::cout << "/close -- stopping a chat mode\n";
+    std::cout << "/close -- stopping a chat mode\n\n";
     /* /disconnect ... */
-    std::cout << "/disconnect descriptor -- disconnecting socket 'descriptor', clearing all message history with it\n";
+    std::cout << "/disconnect 'descriptor' -- disconnecting socket 'descriptor', clearing all message history with it\n\n";
+    /* /tor ... */
+    std::cout << "/tor check|kill|start -- checking if tor is run | checking and killing tor | starting tor with user configurations\n\n";
+    /* /configure ... */
+    std::cout << "/configure <socks 'port'> <port 'port'> -- configuring ports which SOCKS5 server and\n\n";
+    std::cout << "\t\tAdmes server will listen to. Defaults: SOCKS5 - 9050, Admes - 4242\n\n";
     /* /exit */
     std::cout << "/exit -- close the program\n";
-    // TODO: Add new commands (/tor and /configure)
 
     std::cout << "\nThanks for using 'admes'\n";
-    std::cout << "\n-============================================================================================-\n";
+    std::cout << "\n-================================================================================================================-\n";
 
 }
 
@@ -206,6 +210,5 @@ int main(int argc, char *argv[])
     }
 
     c->StopAll();
-    //delete c;
     return a.exec();
 }
