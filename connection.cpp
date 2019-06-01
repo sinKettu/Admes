@@ -183,7 +183,7 @@ void Connection::slotRead()
         WaitingForConfirmation.remove(id);
         chat->AddNewOne(id);
     }
-    else
+    else if (socketMap.contains(id))
         chat->AddToChat(id, "From", message);
 }
 
