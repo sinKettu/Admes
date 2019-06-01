@@ -17,7 +17,6 @@ public:
 public slots:
     void slotConnectionExec();
     void slotStartServer();
-    void slotStartTorServer(quint16);
     void slotNewConnection();
     void slotRead();
     void slotConnect(QString adr, quint16 port);

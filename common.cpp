@@ -78,7 +78,8 @@ bool TorIsRunning()
 bool KillTor()
 {
     if (torPid == 0)
-        TorIsRunning();
+        if (!TorIsRunning())
+            return false;
 
     kill(torPid, SIGKILL);
     QThread::sleep(1);
@@ -87,7 +88,6 @@ bool KillTor()
     bool result = tmp.open(QIODevice::ReadOnly);
     tmp.close();
     return !result;
-    
 }
 
 #endif

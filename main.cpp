@@ -95,7 +95,8 @@ int main(int argc, char *argv[])
                 continue;
             }
         }
-        else if (!commands[0].compare("configure") && (commands.length() == 3 || commands.length() == 5))
+        else if (!commands[0].compare("configure") && 
+                (commands.length() == 3 || commands.length() == 5))
         {
             quint16 soc = 0;
             quint16 ser = 0;
