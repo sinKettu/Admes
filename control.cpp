@@ -3,11 +3,13 @@
 
 Control::Control(QObject *parent) : QObject(parent)
 {
-    connection.moveToThread(&thread);
+    thread = new QThread();
+    connection.moveToThread(thread);
 
-    connect(&thread, SIGNAL(started()),                 &connection, SLOT(slotConnectionExec()));
-    connect(&thread, SIGNAL(finished()),                &thread,     SLOT(deleteLater()));
-    connect(&connection, SIGNAL(sigTerminateThread()),  &thread,     SLOT(quit()));
+    connect(thread, SIGNAL(started()),                  &connection, SLOT(slotConnectionExec()));
+    connect(thread, SIGNAL(finished()),                 thread,      SLOT(deleteLater()));
+    connect(thread, SIGNAL(finished()),                 this,        SLOT(deleteLater()));
+    connect(&connection, SIGNAL(sigTerminateThread()),  thread,      SLOT(quit()));
 
     connect(this, SIGNAL(sigStartServer()),             &connection, SLOT(slotStartServer()));
     connect(this, SIGNAL(sigStopAll()),                 &connection, SLOT(slotStopAll()));
@@ -19,14 +21,14 @@ Control::Control(QObject *parent) : QObject(parent)
     connect(this, SIGNAL(sigCloseDialog()),             &connection, SLOT(slotCloseDialog()));
     connect(this, SIGNAL(sigRunTor()),                  &connection, SLOT(slotRunTor()));
     connect(this, SIGNAL(sigSpecifyPortForListening(quint16)), &connection, SLOT(slotSpecifyPortForListening(quint16)));
-    connect(this, SIGNAL(sigSpecifyPortForSOCKS5(quint16)),  &connection, SLOT(slotSpecifyPortForSOCKS5(quint16)));
+    connect(this, SIGNAL(sigSpecifyPortForSOCKS5(quint16)),  &connection,   SLOT(slotSpecifyPortForSOCKS5(quint16)));
 #ifdef _WIN32
     connect(this, SIGNAL(sigSpecifyTorPath(QString)),   &connection, SLOT(slotSpecifyTorPath(QString)));
 #elif _WIN64
     connect(this, SIGNAL(sigSpecifyTorPath(QString)),   &connection, SLOT(slotSpecifyTorPath(QString)));
 #endif
 
-    thread.start();
+    thread->start();
 }
 
 void Control::StartServer()

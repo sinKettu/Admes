@@ -29,7 +29,6 @@ void Connection::slotStopAll()
     if (tor != nullptr)
     {
         tor->close();
-        tor->kill();
     }
     QMap<qint64, QTcpSocket*>::iterator iter;
     for (iter = WaitingForConfirmation.begin(); iter != WaitingForConfirmation.end(); iter++)

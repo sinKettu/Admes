@@ -48,7 +48,7 @@ signals:
 
 private:
     Connection connection;
-    QThread thread;
+    QThread *thread;
 };
 
 #endif // CONTROL_H
