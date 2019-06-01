@@ -5,12 +5,15 @@
 Control::Control(QObject *parent) : QObject(parent)
 {
     connection = new Connection();
-    QThread    *thread     = new QThread();
+    thread     = new QThread();
     connection->moveToThread(thread);
 
     connect(thread, SIGNAL(started()),                  connection, SLOT(slotConnectionExec()));
+    connect(thread, SIGNAL(finished()),                 thread,     SLOT(deleteLater()));
+    connect(connection, SIGNAL(sigTerminateThread()),   thread,     SLOT(terminate()));
 
     connect(this, SIGNAL(sigStartServer()),             connection, SLOT(slotStartServer()));
+    connect(this, SIGNAL(sigStopAll()),                 connection, SLOT(slotStopAll()));
     connect(this, SIGNAL(sigConnect(QString, quint16)), connection, SLOT(slotConnect(QString, quint16)));
     connect(this, SIGNAL(sigConnectSOCKS5(QString, quint16)), connection, SLOT(slotConnectSOCKS5(QString, quint16)));
     connect(this, SIGNAL(sigWrite(qint64, QString)),    connection, SLOT(slotWrite(qint64, QString)));
@@ -32,6 +35,13 @@ Control::Control(QObject *parent) : QObject(parent)
 void Control::StartServer()
 {
     emit sigStartServer();
+}
+
+void Control::StopAll()
+{
+    emit sigStopAll();
+    delete connection;
+    emit sigCloseProgram();
 }
 
 void Control::ConnectTo(QString adr, quint16 port)

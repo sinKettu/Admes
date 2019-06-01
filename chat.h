@@ -10,6 +10,7 @@ class Chat : public QObject
     Q_OBJECT
 public:
     explicit Chat(QObject *parent = nullptr);
+    ~Chat();
     bool Output(qint64 id);
     void AddToChat(qint64 id, QString who, QString message);
     void AddNewOne(qint64 id);

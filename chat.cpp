@@ -6,6 +6,14 @@ Chat::Chat(QObject *parent) : QObject(parent)
 
 }
 
+Chat::~Chat()
+{
+    QMap<qint64, QStringList>::iterator iter;
+    for (iter = chats.begin(); iter != chats.end(); iter++)
+        iter.value().clear();
+    chats.clear();
+}
+
 void Chat::AddToChat(qint64 id, QString who, QString message)
 {
     if (chats.contains(id))

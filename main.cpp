@@ -41,6 +41,7 @@ int main(int argc, char *argv[])
     QTextStream qin(stdin);
     QString input;
     Control *c = new Control();
+    QObject::connect(c, SIGNAL(sigCloseProgram()), &a, SLOT(quit()));
     qint64 chatID = 0;
 
     HighLight(QString("admes is ready to interpret your commands!"));
@@ -198,11 +199,13 @@ int main(int argc, char *argv[])
         }
         if (commands[0].compare("/exit") == 0)
         {
-            exit(0);
+            break;
         }
 
         std::cout <<  prefix << "Wrong command!\n";
     }
 
+    c->StopAll();
+    //delete c;
     return a.exec();
 }

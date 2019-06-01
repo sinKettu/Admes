@@ -11,6 +11,7 @@ public:
     explicit Control(QObject *parent = nullptr);
     void StartServer();
     void Send(qint64 id, QString message);
+    void StopAll();
     void ConnectTo(QString adr, quint16 port);
     void Disconnect(qint64 id);
     void ConnectThroughSOCKS5(QString addr, quint16 port);
@@ -27,6 +28,7 @@ public:
 
 signals:
     void sigStartServer();
+    void sigStopAll();
     void sigWrite(qint64, QString);
     void sigConnect(QString, quint16);
     void sigConnectSOCKS5(QString, quint16);
@@ -36,6 +38,7 @@ signals:
     void sigRunTor();
     void sigSpecifyPortForListening(quint16);
     void sigSpecifyPortForSOCKS5(quint16);
+    void sigCloseProgram();
 #ifdef _WIN32
     void sigSpecifyTorPath(QString);
 #elif _WIN64
@@ -44,7 +47,7 @@ signals:
 
 private:
     Connection *connection = nullptr;
-
+    QThread *thread;
 public slots:
 };
 

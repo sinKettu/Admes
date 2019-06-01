@@ -14,9 +14,13 @@ class Connection : public QObject
 public:
     explicit Connection(QObject *parent = nullptr);
 
+signals:
+    void sigTerminateThread();
+
 public slots:
     void slotConnectionExec();
     void slotStartServer();
+    void slotStopAll();
     void slotNewConnection();
     void slotRead();
     void slotConnect(QString adr, quint16 port);
@@ -45,7 +49,6 @@ private:
     void CheckUp();
     void AdmesConnectionRequest(QTcpSocket *);
 
-    QEventLoop *loop = nullptr;
     QTcpServer *server = nullptr;
     QMap<qint64, QTcpSocket *> socketMap;
     QMap<qint64, QTcpSocket *> WaitingForConfirmation;

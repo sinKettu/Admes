@@ -17,8 +17,29 @@ Connection::Connection(QObject *parent) : QObject(parent) {}
 void Connection::slotConnectionExec()
 {
     chat = new Chat();
-    loop = new QEventLoop();
-    loop->exec();
+}
+
+void Connection::slotStopAll()
+{
+    if (server != nullptr)
+    {
+        server->close();
+        delete server;
+    }
+    if (tor != nullptr)
+    {
+        tor->close();
+    }
+    QMap<qint64, QTcpSocket*>::iterator iter;
+    for (iter = WaitingForConfirmation.begin(); iter != WaitingForConfirmation.end(); iter++)
+        iter.value()->disconnect();
+    for (iter = socketMap.begin(); iter != socketMap.end(); iter++)
+        iter.value()->disconnect();
+    WaitingForConfirmation.clear();
+    socketMap.clear();
+    delete chat;
+
+    emit sigTerminateThread();
 }
 
 void Connection::slotStartServer()
@@ -42,6 +63,7 @@ void Connection::slotStartServer()
 void Connection::slotRunTor()
 {
     tor = new QProcess();
+    connect(tor, SIGNAL(finished(int, QProcess::ExitStatus)), tor, SLOT(deleteLater()));
     tor->setProgram(tor_path);
     QDir tor_conf = QDir::current().absolutePath() + "/tor_config";
     if (!tor_conf.exists() && !QDir::current().mkdir("tor_config"))
