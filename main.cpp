@@ -54,15 +54,25 @@ int main(int argc, char *argv[])
 
     std::cout << prefix << "It seems like you use Windows\n";
     std::cout << prefix << "Please, specify a path to the Tor. To exit type '/exit'\n";
-    std::cout << "Path: ";
-    input = qin.readLine();
     run = false;
-    while (input.compare("/exit"))
+    while (true)
     {
+        std::cout << "Path: ";
+        input = qin.readLine();
         if (QFile(input).exists())
         {
+            std::cout << prefix << "Path is correct!\n";
             c->SpecifyTorPath(input);
             run = true;
+            break;
+        }
+        else if (input.compare("/exit"))
+        {
+            std::cout << prefix << "Incorrect path!\n";
+        }
+        else
+        {
+            run = false;
             break;
         }
     }

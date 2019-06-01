@@ -43,7 +43,7 @@ void HexOutput(QByteArray buf, char separator='\0', qint32 n=INT32_MAX)
     }
 }
 
-#ifdef _WIN32
+#if defined(_WIN32) || defined(_WIN64)
 
 bool TorIsRunning()
 {
@@ -57,7 +57,11 @@ bool TorIsRunning()
     Process32First(hSnapshot, &peProcessEntry);
     do
     {
-        if (!strcmp(reinterpret_cast<char *>(peProcessEntry.szExeFile), "tor.exe"))
+        QString tmp;
+        for (int i = 0; i < 260; i+=2)
+            tmp.push_back(*((char *)peProcessEntry.szExeFile + i));
+
+        if (tmp.indexOf("tor.exe") == 0)
         {
             torPid = peProcessEntry.th32ProcessID;
             CloseHandle(hSnapshot);
@@ -71,68 +75,12 @@ bool TorIsRunning()
 
 bool KillTor()
 {
-    if (torPid != 0 || !TorIsRunning())
-    {
-        HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, false, torPid);
-        if (TerminateProcess(hProcess, 0) && !TorIsRunning())
-        {
-            CloseHandle(hProcess);
-            return true;
-        }
-        else
-        {
-            CloseHandle(hProcess);
+    if (torPid == 0)
+        if (!TorIsRunning())
             return false;
-        }
-    }
-    else
-        return false;
-}
 
-#elif _WIN64
-
-bool TorIsRunning()
-{
-    PROCESSENTRY32 peProcessEntry;
-    HANDLE CONST hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-    if (INVALID_HANDLE_VALUE == hSnapshot)
-    {
-        return false;
-    }
-    peProcessEntry.dwSize = sizeof(PROCESSENTRY32);
-    Process32First(hSnapshot, &peProcessEntry);
-    do
-    {
-        if (!strcmp(reinterpret_cast<char *>(peProcessEntry.szExeFile), "tor.exe"))
-        {
-            torPid = peProcessEntry.th32ProcessID;
-            CloseHandle(hSnapshot);
-            return true;
-        }
-    } while(Process32Next(hSnapshot, &peProcessEntry));
-
-    CloseHandle(hSnapshot);
-    return false;
-}
-
-bool KillTor()
-{
-    if (torPid != 0 || !TorIsRunning())
-    {
-        HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, false, torPid);
-        if (TerminateProcess(hProcess, 0) && !TorIsRunning())
-        {
-            CloseHandle(hProcess);
-            return true;
-        }
-        else
-        {
-            CloseHandle(hProcess);
-            return false;
-        }
-    }
-    else
-        return false;
+    HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, false, torPid);
+    return TerminateProcess(hProcess, 0);
 }
 
 #else
