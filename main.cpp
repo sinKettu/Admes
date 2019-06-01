@@ -65,6 +65,7 @@ int main(int argc, char *argv[])
         if (commands[0].compare("/open") == 0 && commands.length() == 1)
         {
             c->StartServer();
+            continue;
         }
         if (!commands[0].compare("/tor") && commands.length() >= 2)
         {

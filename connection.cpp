@@ -89,19 +89,15 @@ void Connection::slotRunTor()
     
     QString tmp = "SOCKSPort " + QString::number(socks5_port) + "\n";
     fout.write(tmp.toLatin1());
-    std::cout << prefix << "SOCKS5 port is " + QString::number(socks5_port).toStdString() + "\n";
 
     tmp = "HiddenServiceDir " + tor_conf.absolutePath() + "/service\n";
     fout.write(tmp.toLatin1());
-    std::cout << prefix << "Hidden service directory is " << tor_conf.absolutePath().toStdString() + "/service\n";
 
     QString strPort = QString::number(server_port);
     tmp = "HiddenServicePort " + strPort + " 127.0.0.1:" + strPort + "\n";
     fout.write(tmp.toLatin1());
-    std::cout << prefix << "Service will listen to port " << strPort.toStdString() << "\n";
 
     fout.close();
-
     if (!tor->open(QIODevice::ReadOnly))
     {
         std::cout << prefix << "Can't start tor\n";
@@ -131,8 +127,11 @@ void Connection::slotRunTor()
     else
     {
         tmp = QString().fromLocal8Bit(fin.readLine());
-        std::cout << prefix << "Tor service hostname: " << tmp.mid(0, tmp.length() - 1).toStdString() << "\n";
         fin.close();
+        std::cout << prefix << "Service will listen to port " << strPort.toStdString() << "\n";
+        std::cout << prefix << "Hidden service directory is " << tor_conf.absolutePath().toStdString() + "/service\n";
+        std::cout << prefix << "SOCKS5 port is " + QString::number(socks5_port).toStdString() + "\n";
+        std::cout << prefix << "Tor service hostname: " << tmp.mid(0, tmp.length() - 1).toStdString() << "\n";
     }
 }
 
