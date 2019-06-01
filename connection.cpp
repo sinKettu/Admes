@@ -299,7 +299,12 @@ void Connection::slotWrite(qint64 id, QString message)
 
 void Connection::slotDisconnect(qint64 id)
 {
-    socketMap[id]->disconnectFromHost();
+    if (socketMap.contains(id))
+        socketMap[id]->disconnectFromHost();
+    else if (WaitingForConfirmation.contains(id))
+        WaitingForConfirmation[id]->disconnectFromHost();
+    else
+        std::cout << prefix << "No such socket exists\n";
 }
 
 void Connection::slotDisconnectWarning()
