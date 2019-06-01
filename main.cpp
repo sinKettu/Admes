@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
     QTextStream qin(stdin);
     QString input;
     Control *c = new Control();
-    QObject::connect(c, SIGNAL(sigCloseProgram()), &a, SLOT(quit()));
+    QObject::connect(c, SIGNAL(sigCloseProgram()), &a, SLOT(quit()), Qt::QueuedConnection);
     qint64 chatID = 0;
 
     HighLight(QString("admes is ready to interpret your commands!"));

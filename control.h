@@ -2,6 +2,7 @@
 #define CONTROL_H
 
 #include <QObject>
+#include <QThread>
 #include "connection.h"
 
 class Control : public QObject
@@ -46,9 +47,8 @@ signals:
 #endif
 
 private:
-    Connection *connection = nullptr;
-    QThread *thread;
-public slots:
+    Connection connection;
+    QThread thread;
 };
 
 #endif // CONTROL_H

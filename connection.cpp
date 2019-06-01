@@ -29,6 +29,7 @@ void Connection::slotStopAll()
     if (tor != nullptr)
     {
         tor->close();
+        tor->kill();
     }
     QMap<qint64, QTcpSocket*>::iterator iter;
     for (iter = WaitingForConfirmation.begin(); iter != WaitingForConfirmation.end(); iter++)
@@ -69,7 +70,6 @@ void Connection::slotRunTor()
     if (!tor_conf.exists() && !QDir::current().mkdir("tor_config"))
     {
         std::cout << prefix << "Can't create " << tor_conf.absolutePath().toStdString() << "\n";
-        delete tor;
         return;
     }
 
@@ -81,7 +81,6 @@ void Connection::slotRunTor()
     if (!fout.open(QIODevice::WriteOnly))
     {
         std::cout << prefix << "Can't create torrc file\n";
-        delete tor;
         return;
     }
     
@@ -104,7 +103,6 @@ void Connection::slotRunTor()
     {
         std::cout << prefix << "Can't start tor\n";
         tor->close();
-        delete tor;
         return;
     }
 
@@ -117,7 +115,6 @@ void Connection::slotRunTor()
             std::cout << "[TOR] " << torOutput[i].toStdString() << "\n";
             
         tor->close();
-        delete tor;
         return;
     }
 
@@ -126,7 +123,6 @@ void Connection::slotRunTor()
     {
         std::cout << prefix << "Couldn't read tor service hostname\n";
         tor->close();
-        delete tor;
         return;
     }
     else
