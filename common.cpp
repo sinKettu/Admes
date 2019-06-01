@@ -1,15 +1,24 @@
-#ifdef _WIN32
-    // code here
-#elif _WIN64
-    // code here
-#else
-    #include <sys/types.h>
-    #include <signal.h>
-#endif
-
 #include "common.h"
 
-pid_t torPid = 0;
+#ifdef _WIN32
+
+    #include <windows.h>
+    #include <tlhelp32.h>
+    DWORD torPid = 0;
+
+#elif _WIN64
+
+    #include <windows.h>
+    #include <tlhelp32.h>
+    DWORD torPid = 0;
+
+#else
+
+    #include <sys/types.h>
+    #include <signal.h>
+    pid_t torPid = 0;
+
+#endif
 
 void HighLight(QString str)
 {
@@ -35,9 +44,97 @@ void HexOutput(QByteArray buf, char separator='\0', qint32 n=INT32_MAX)
 }
 
 #ifdef _WIN32
-    // code here
+
+bool TorIsRunning()
+{
+    PROCESSENTRY32 peProcessEntry;
+    HANDLE CONST hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+    if (INVALID_HANDLE_VALUE == hSnapshot)
+    {
+        return false;
+    }
+    peProcessEntry.dwSize = sizeof(PROCESSENTRY32);
+    Process32First(hSnapshot, &peProcessEntry);
+    do
+    {
+        if (!strcmp(reinterpret_cast<char *>(peProcessEntry.szExeFile), "tor.exe"))
+        {
+            torPid = peProcessEntry.th32ProcessID;
+            CloseHandle(hSnapshot);
+            return true;
+        }
+    } while(Process32Next(hSnapshot, &peProcessEntry));
+
+    CloseHandle(hSnapshot);
+    return false;
+}
+
+bool KillTor()
+{
+    if (torPid != 0 || !TorIsRunning())
+    {
+        HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, false, torPid);
+        if (TerminateProcess(hProcess, 0) && !TorIsRunning())
+        {
+            CloseHandle(hProcess);
+            return true;
+        }
+        else
+        {
+            CloseHandle(hProcess);
+            return false;
+        }
+    }
+    else
+        return false;
+}
+
 #elif _WIN64
-    // code here
+
+bool TorIsRunning()
+{
+    PROCESSENTRY32 peProcessEntry;
+    HANDLE CONST hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+    if (INVALID_HANDLE_VALUE == hSnapshot)
+    {
+        return false;
+    }
+    peProcessEntry.dwSize = sizeof(PROCESSENTRY32);
+    Process32First(hSnapshot, &peProcessEntry);
+    do
+    {
+        if (!strcmp(reinterpret_cast<char *>(peProcessEntry.szExeFile), "tor.exe"))
+        {
+            torPid = peProcessEntry.th32ProcessID;
+            CloseHandle(hSnapshot);
+            return true;
+        }
+    } while(Process32Next(hSnapshot, &peProcessEntry));
+
+    CloseHandle(hSnapshot);
+    return false;
+}
+
+bool KillTor()
+{
+    if (torPid != 0 || !TorIsRunning())
+    {
+        HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, false, torPid);
+        if (TerminateProcess(hProcess, 0) && !TorIsRunning())
+        {
+            CloseHandle(hProcess);
+            return true;
+        }
+        else
+        {
+            CloseHandle(hProcess);
+            return false;
+        }
+    }
+    else
+        return false;
+}
+
 #else
 
 bool TorIsRunning()

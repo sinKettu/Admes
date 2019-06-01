@@ -41,16 +41,34 @@ void help()
 int main(int argc, char *argv[])
 {
     QCoreApplication a(argc, argv);
-    QTextStream qout(stdout);
     QTextStream qin(stdin);
     QString input;
     Control *c = new Control();
     QObject::connect(c, SIGNAL(sigCloseProgram()), &a, SLOT(quit()), Qt::QueuedConnection);
     qint64 chatID = 0;
+    bool run = true;
 
     HighLight(QString("admes is ready to interpret your commands!"));
     std::cout << prefix << "Enter '/help' to get help\n";
-    while (true)
+#if defined (_WIN32) || defined(_WIN32)
+
+    std::cout << prefix << "It seems like you use Windows\n";
+    std::cout << prefix << "Please, specify a path to the Tor. To exit type '/exit'\n";
+    std::cout << "Path: ";
+    input = qin.readLine();
+    run = false;
+    while (input.compare("/exit"))
+    {
+        if (QFile(input).exists())
+        {
+            c->SpecifyTorPath(input);
+            run = true;
+            break;
+        }
+    }
+
+#endif
+    while (run)
     {
         input = qin.readLine();
         if (input.length() == 0)
