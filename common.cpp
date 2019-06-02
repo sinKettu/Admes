@@ -120,13 +120,7 @@ bool KillTor()
         if (!TorIsRunning())
             return false;
 
-    kill(torPid, SIGKILL);
-    QThread::sleep(1);
-    QString str = "/proc/" + QString::number(static_cast<quint32>(torPid)) + "/stat";
-    QFile tmp(str);
-    bool result = tmp.open(QIODevice::ReadOnly);
-    tmp.close();
-    return !result;
+    return !kill(torPid, SIGKILL);
 }
 
 #endif
