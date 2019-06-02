@@ -22,6 +22,7 @@ Control::Control(QObject *parent) : QObject(parent)
     connect(this, SIGNAL(sigRunTor()),                  &connection, SLOT(slotRunTor()));
     connect(this, SIGNAL(sigSpecifyPortForListening(quint16)), &connection, SLOT(slotSpecifyPortForListening(quint16)));
     connect(this, SIGNAL(sigSpecifyPortForSOCKS5(quint16)),  &connection,   SLOT(slotSpecifyPortForSOCKS5(quint16)));
+    
 #if defined(_WIN32) || defined(_WIN64)
 
     connect(this, SIGNAL(sigSpecifyTorPath(QString)),   &connection, SLOT(slotSpecifyTorPath(QString)));

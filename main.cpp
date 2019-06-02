@@ -50,6 +50,7 @@ int main(int argc, char *argv[])
 
     HighLight(QString("admes is ready to interpret your commands!"));
     std::cout << prefix << "Enter '/help' to get help\n";
+
 #if defined (_WIN32) || defined(_WIN32)
 
     std::cout << prefix << "It seems like you use Windows\n";
@@ -78,6 +79,7 @@ int main(int argc, char *argv[])
     }
 
 #endif
+
     while (run)
     {
         input = qin.readLine();
