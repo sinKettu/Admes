@@ -26,10 +26,15 @@ void help()
     /* /disconnect ... */
     std::cout << "/disconnect 'descriptor' -- disconnecting socket 'descriptor', clearing all message history with it\n\n";
     /* /tor ... */
-    std::cout << "/tor check|kill|start -- checking if tor is run | checking and killing tor | starting tor with user configurations\n\n";
+    std::cout << "/tor <check|kill|start|log> -- checking if tor is run |\n";
+    std::cout << "\t\tchecking and killing tor |\n";
+    std::cout << "\t\tstarting tor with user configurations |\n";
+    std::cout << "\t\tOutput log of the Tor session\n\n";
     /* /configure ... */
     std::cout << "/configure <socks 'port'> <port 'port'> -- configuring ports which SOCKS5 server and\n\n";
     std::cout << "\t\tAdmes server will listen to. Defaults: SOCKS5 - 9050, Admes - 4242\n\n";
+    /* /version */
+    std::cout << "/version -- version of Admes\n\n";
     /* /exit */
     std::cout << "/exit -- close the program\n";
 
@@ -130,6 +135,11 @@ int main(int argc, char *argv[])
                 c->RunTor();
                 continue;
             }
+            else if (!commands[1].compare("log") && commands.length() == 2)
+            {
+                c->ShowTorLog();
+                continue;
+            }
         }
         else if (!commands[0].compare("configure") && 
                 (commands.length() == 3 || commands.length() == 5))
@@ -226,13 +236,18 @@ int main(int argc, char *argv[])
             c->Send(chatID, input);
             continue;
         }
-        if (commands[0].compare("/close") == 0 && commands.length() == 1)
+        if (!commands[0].compare("/close") && commands.length() == 1)
         {
             chatID = 0;
             c->CloseDialog();
             continue;
         }
-        if (commands[0].compare("/exit") == 0)
+        if (!commands[0].compare("/version") && commands.length() == 1)
+        {
+            std::cout << prefix << "Version: 0.1\n";
+            continue;
+        }
+        if (!commands[0].compare("/exit") && commands.length() == 1)
         {
             break;
         }

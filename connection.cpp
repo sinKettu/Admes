@@ -362,6 +362,26 @@ void Connection::slotReadTorOutput()
     {
         fout.write(output);
     }
+    fout.close();
+}
+
+void Connection::slotShowTorLog()
+{
+    QFile fout(QDir::current().absolutePath() + "/tor_config/last_session.log");
+    if (fout.open(QIODevice::ReadOnly))
+    {
+        while (!fout.atEnd())
+        {
+            QString tmp = fout.readLine();
+            std::cout << tmp.toStdString();
+        }
+        std::cout << "\n";
+        fout.close();
+    }
+    else
+    {
+        std::cout << prefix << "Couldn't open Tor log\n";
+    }
 }
 
 #if defined(_WIN32) || defined(_WIN64)

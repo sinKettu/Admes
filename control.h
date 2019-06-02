@@ -21,6 +21,7 @@ public:
     void RunTor();
     void SpecifyPortForListening(quint16 port);
     void SpecifyPortForSOCKS5(quint16 port);
+    void ShowTorLog();
 
 #if defined(_WIN32) || defined(_WIN64)
 
@@ -41,6 +42,7 @@ signals:
     void sigSpecifyPortForListening(quint16);
     void sigSpecifyPortForSOCKS5(quint16);
     void sigCloseProgram();
+    void sigShowTorLog();
     
 #if defined(_WIN32) || defined(_WIN64)
 
