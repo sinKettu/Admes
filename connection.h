@@ -35,6 +35,7 @@ public slots:
     void slotRunTor();
     void slotSpecifyPortForListening(quint16 port);
     void slotSpecifyPortForSOCKS5(quint16 port);
+    void slotReadTorOutput();
 
 #if defined(_WIN32) || defined(_WIN64)
 

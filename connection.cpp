@@ -103,7 +103,7 @@ void Connection::slotRunTor()
         return;
     }
 
-    tor->waitForFinished(5500);
+    tor->waitForFinished(3000);
     if (tor->state() == QProcess::NotRunning)
     {
         std::cout << prefix << "Tor ran with error\n";
@@ -126,6 +126,8 @@ void Connection::slotRunTor()
     {
         tmp = QString().fromLocal8Bit(fin.readLine());
         fin.close();
+        connect(tor, SIGNAL(readyReadStandardOutput()), this, SLOT(slotReadTorOutput()));
+        connect(tor, SIGNAL(readyReadStandardError()), this, SLOT(slotReadTorOutput()));
         std::cout << prefix << "Service will listen to port " << strPort.toStdString() << "\n";
         std::cout << prefix << "Hidden service directory is " << tor_conf.absolutePath().toStdString() + "/service\n";
         std::cout << prefix << "SOCKS5 port is " + QString::number(socks5_port).toStdString() + "\n";
@@ -349,6 +351,17 @@ void Connection::slotSpecifyPortForSOCKS5(quint16 port)
 {
     socks5_port = port;
     std::cout << prefix << "SOCKS5 service will listen to port " << port << "\n";
+}
+
+void Connection::slotReadTorOutput()
+{
+    QByteArray output = tor->readAllStandardOutput();
+    output.append(tor->readAllStandardError());
+    QFile fout(QDir::current().absolutePath() + "/tor_config/last_session.log");
+    if (fout.open(QIODevice::WriteOnly))
+    {
+        fout.write(output);
+    }
 }
 
 #if defined(_WIN32) || defined(_WIN64)
