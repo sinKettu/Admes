@@ -1,12 +1,6 @@
 #include "common.h"
 
-#ifdef _WIN32
-
-    #include <windows.h>
-    #include <tlhelp32.h>
-    DWORD torPid = 0;
-
-#elif _WIN64
+#if defined(_WIN32) || defined(_WIN64)
 
     #include <windows.h>
     #include <tlhelp32.h>

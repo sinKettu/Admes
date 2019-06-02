@@ -21,10 +21,11 @@ public:
     void RunTor();
     void SpecifyPortForListening(quint16 port);
     void SpecifyPortForSOCKS5(quint16 port);
-#ifdef _WIN32
+
+#if defined(_WIN32) || defined(_WIN64)
+
     void SpecifyTorPath(QString path);
-#elif _WIN64
-    void SpecifyTorPath(QString path);
+
 #endif
 
 signals:
@@ -40,10 +41,11 @@ signals:
     void sigSpecifyPortForListening(quint16);
     void sigSpecifyPortForSOCKS5(quint16);
     void sigCloseProgram();
-#ifdef _WIN32
+    
+#if defined(_WIN32) || defined(_WIN64)
+
     void sigSpecifyTorPath(QString);
-#elif _WIN64
-    void sigSpecifyTorPath(QString);
+
 #endif
 
 private:

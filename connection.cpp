@@ -1,6 +1,4 @@
-#ifdef _WIN32
-    #include <winsock.h>
-#elif _WIN64
+#if defined(_WIN32) || defined(_WIN64)
     #include <winsock.h>
 #else
     #include <netinet/in.h>
@@ -353,14 +351,7 @@ void Connection::slotSpecifyPortForSOCKS5(quint16 port)
     std::cout << prefix << "SOCKS5 service will listen to port " << port << "\n";
 }
 
-#ifdef _WIN32
-
-void Connection::slotSpecifyTorPath(QString path)
-{
-    tor_path = path;
-}
-
-#elif _WIN64
+#if defined(_WIN32) || defined(_WIN64)
 
 void Connection::slotSpecifyTorPath(QString path)
 {

@@ -36,11 +36,7 @@ public slots:
     void slotSpecifyPortForListening(quint16 port);
     void slotSpecifyPortForSOCKS5(quint16 port);
 
-#ifdef _WIN32
-
-    void slotSpecifyTorPath(QString path);
-
-#elif _WIN64
+#if definde(_WIN32) || defined(_WIN64)
 
     void slotSpecifyTorPath(QString path);
 
