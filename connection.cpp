@@ -24,7 +24,7 @@ Connection::~Connection()
         server->close();
         delete server;
     }
-    if (tor != nullptr)
+    if (tor != nullptr && tor->state() == QProcess::Running)
     {
         tor->close();
     }
