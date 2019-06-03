@@ -74,8 +74,9 @@ bool KillTor()
             return false;
 
     HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, false, torPid);
+    bool result = TerminateProcess(hProcess, 0);
     torPid = 0;
-    return TerminateProcess(hProcess, 0);
+    return result;
 }
 
 #else
@@ -121,8 +122,9 @@ bool KillTor()
         if (!TorIsRunning())
             return false;
 
+    bool result = !kill(torPid, SIGKILL);
     torPid = 0;
-    return !kill(torPid, SIGKILL);
+    return result;
 }
 
 #endif
