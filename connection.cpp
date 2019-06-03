@@ -66,6 +66,8 @@ void Connection::slotRunTor()
 {
     tor = new QProcess();
     connect(tor, SIGNAL(finished(int, QProcess::ExitStatus)), tor, SLOT(deleteLater()));
+    connect(tor, SIGNAL(readyReadStandardOutput()), this, SLOT(slotReadTorOutput()));
+    connect(tor, SIGNAL(readyReadStandardError()), this, SLOT(slotReadTorOutput()));
     tor->setProgram(tor_path);
     QDir tor_conf = QDir::current().absolutePath() + "/tor_config";
     if (!tor_conf.exists() && !QDir::current().mkdir("tor_config"))
@@ -126,12 +128,9 @@ void Connection::slotRunTor()
     {
         tmp = QString().fromLocal8Bit(fin.readLine());
         fin.close();
-        connect(tor, SIGNAL(readyReadStandardOutput()), this, SLOT(slotReadTorOutput()));
-        connect(tor, SIGNAL(readyReadStandardError()), this, SLOT(slotReadTorOutput()));
         std::cout << prefix << "Service will listen to port " << strPort.toStdString() << "\n";
         std::cout << prefix << "Hidden service directory is " << tor_conf.absolutePath().toStdString() + "/service\n";
-        std::cout << prefix << "SOCKS5 port is " + QString::number(socks5Port
-).toStdString() + "\n";
+        std::cout << prefix << "SOCKS5 port is " + QString::number(socks5Port).toStdString() + "\n";
         std::cout << prefix << "Tor service hostname: " << tmp.mid(0, tmp.length() - 1).toStdString() << "\n";
     }
 }
@@ -356,14 +355,25 @@ void Connection::slotSpecifyPortForSOCKS5(quint16 port)
 
 void Connection::slotReadTorOutput()
 {
-    QByteArray output = tor->readAllStandardOutput();
-    output.append(tor->readAllStandardError());
+    QProcess *proc = reinterpret_cast<QProcess *>(QObject::sender());
+    QByteArray output = proc->readAllStandardOutput();
+    output.append(proc->readAllStandardError());
     QFile fout(QDir::current().absolutePath() + "/tor_config/last_session.log");
-    if (fout.open(QIODevice::WriteOnly))
+    if (firstWriting && fout.open(QIODevice::WriteOnly))
     {
         fout.write(output);
+        fout.close();
+        firstWriting = false;
     }
-    fout.close();
+    else if (!firstWriting && fout.open(QIODevice::WriteOnly | QIODevice::Append))
+    {
+        fout.write(output);
+        fout.close();
+    }
+    else
+    {
+        std::cout << prefix << "Couldn't open Tor log\n";
+    }
 }
 
 void Connection::slotShowTorLog()

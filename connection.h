@@ -55,6 +55,7 @@ private:
     Chat *chat = nullptr;
     quint16 serverPort = 4242;
     quint16 socks5Port = 9050;
+    bool firstWriting = true;
     // In UNIX will be used just "tor" command
     //      (tor should be installed)
     // In Windows user should specify path to tor.exe
