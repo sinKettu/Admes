@@ -48,7 +48,7 @@ void Connection::slotStartServer()
 {
     server = new QTcpServer();
 
-    if (!server->listen(QHostAddress::Any, server_port))
+    if (!server->listen(QHostAddress::Any, serverPort))
     {
         std::cout << prefix << "Server is not started\n";
 
@@ -57,7 +57,7 @@ void Connection::slotStartServer()
         return;
     }
 
-    std::cout << prefix << "Server is started at port " << server_port << "\n";
+    std::cout << prefix << "Server is started at port " << serverPort << "\n";
 
     connect(server, SIGNAL(newConnection()), this, SLOT(slotNewConnection()));
 }
@@ -85,13 +85,13 @@ void Connection::slotRunTor()
         return;
     }
     
-    QString tmp = "SOCKSPort " + QString::number(socks5_port) + "\n";
+    QString tmp = "SOCKSPort " + QString::number(socks5Port) + "\n";
     fout.write(tmp.toLatin1());
 
     tmp = "HiddenServiceDir " + tor_conf.absolutePath() + "/service\n";
     fout.write(tmp.toLatin1());
 
-    QString strPort = QString::number(server_port);
+    QString strPort = QString::number(serverPort);
     tmp = "HiddenServicePort " + strPort + " 127.0.0.1:" + strPort + "\n";
     fout.write(tmp.toLatin1());
 
@@ -130,7 +130,8 @@ void Connection::slotRunTor()
         connect(tor, SIGNAL(readyReadStandardError()), this, SLOT(slotReadTorOutput()));
         std::cout << prefix << "Service will listen to port " << strPort.toStdString() << "\n";
         std::cout << prefix << "Hidden service directory is " << tor_conf.absolutePath().toStdString() + "/service\n";
-        std::cout << prefix << "SOCKS5 port is " + QString::number(socks5_port).toStdString() + "\n";
+        std::cout << prefix << "SOCKS5 port is " + QString::number(socks5Port
+).toStdString() + "\n";
         std::cout << prefix << "Tor service hostname: " << tmp.mid(0, tmp.length() - 1).toStdString() << "\n";
     }
 }
@@ -220,7 +221,7 @@ void Connection::slotConnectSOCKS5(QString addr, quint16 port)
 {
     std::cout << prefix << "Connecting to SOCKS server\n";
     QTcpSocket *soc = new QTcpSocket();
-    soc->connectToHost("127.0.0.1", socks5_port);
+    soc->connectToHost("127.0.0.1", socks5Port);
 
     if (soc->waitForConnected(5000))
     {
@@ -343,13 +344,13 @@ void Connection::CheckUp()
 
 void Connection::slotSpecifyPortForListening(quint16 port)
 {
-    server_port = port;   
+    serverPort = port;   
     std::cout << prefix << "Admes will listen to port " << port << "\n";
 }
 
 void Connection::slotSpecifyPortForSOCKS5(quint16 port)
 {
-    socks5_port = port;
+    socks5Port = port;
     std::cout << prefix << "SOCKS5 service will listen to port " << port << "\n";
 }
 
