@@ -255,6 +255,8 @@ void Connection::slotConnectSOCKS5(QString addr, quint16 port)
         if (response[1] != 0x00)
         {
             std::cout << prefix << "SOCKS5 error: " << (int)response[1] << "\n";
+            std::cout << prefix << "SOCKS5 response: ";
+            HexOutput(QByteArray(response), ' ', 10);
             soc->close();
             delete soc;
             return;
