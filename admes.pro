@@ -10,9 +10,15 @@ CONFIG -= app_bundle
 # deprecated API in order to know how to port your code away from it.
 DEFINES += QT_DEPRECATED_WARNINGS
 
-# INCLUDEDIR += $$PWD/libs/mpir/include
-# LIBS += $$PWD/libs/mpir/lib/libmpir.so
-LIBS += -lmpir
+win32|win64 {
+    INCLUDEPATH += $$PWD/libs/mpir
+    HEADERS += $$PWD/libs/mpir/mpir.h
+    LIBS += $$PWD/libs/mpir/mpir.dll
+    LIBS += libws2_32
+}
+else {
+    LIBS += -lmpir
+}
 
 # You can also make your code fail to compile if you use deprecated APIs.
 # In order to do so, uncomment the following line.
@@ -29,11 +35,6 @@ SOURCES += \
 	src/crypto/ECC.cpp \
 	src/crypto/prng.cpp
 
-# Default rules for deployment.
-qnx: target.path = /tmp/$${TARGET}/bin
-else: unix:!android: target.path = /opt/$${TARGET}/bin
-!isEmpty(target.path): INSTALLS += target
-
 HEADERS += \
     src/control.h \
     src/connection.h \
@@ -43,6 +44,4 @@ HEADERS += \
 	src/crypto/ECC.h \
 	src/crypto/prng.h
 
-win32|win64 {
-    LIBS += libws2_32
-}
+# QMAKE_POST_LINK += $$QMAKE_COPY $$PWD/libs/mpir/mpir.dll C:/mpir.dll
