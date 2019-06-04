@@ -172,11 +172,10 @@ void KeyExpansion(byte* key, short nb, short nr, short nk, byte** w)
             subBytes(temp);
             xorWords(temp, Rcon[i / nk], temp);
         }
-        else
-            if(nk > 6 && i % nk == 4)
-            {
-                subBytes(temp);
-            }
+        else if(nk > 6 && i % nk == 4)
+        {
+            subBytes(temp);
+        }
 
         xorWords(temp, w[i - nk], temp);
 

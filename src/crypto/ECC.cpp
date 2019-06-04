@@ -95,6 +95,7 @@ out)
     mpz_set(out.y, in.y);
 }
 
+// Удалить и не позориться
 // Получение ординаты ЭК по абсциссе ЭК
 void point_expand(mpz_t &x, mpz_t &y)
 {
