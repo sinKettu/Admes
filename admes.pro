@@ -15,6 +15,12 @@ win32|win64 {
     HEADERS += $$PWD/libs/mpir/mpir.h
     LIBS += $$PWD/libs/mpir/mpir.dll
     LIBS += libws2_32
+    # EXTRA_BINFILES += $$PWD/libs/mpir/mpir.dll
+    # EXTRA_BINFILES_WIN = $${EXTRA_BINFILES}
+    # EXTRA_BINFILES_WIN ~= s,/,\\,g
+    # DESTDIR_WIN = $${DESTDIR}
+    # DESTDIR_WIN ~= s,/,\\,g
+    # QMAKE_POST_LINK += $$quote(cmd /c copy /y $${EXTRA_BINFILES_WIN} %%{DESTDIR_WIN})
 }
 else {
     LIBS += -lmpir
@@ -27,13 +33,13 @@ else {
 
 SOURCES += \
         src/main.cpp \
-    src/control.cpp \
-    src/connection.cpp \
-    src/chat.cpp \
-    src/common.cpp \
-	src/crypto/AES.cpp \
-	src/crypto/ECC.cpp \
-	src/crypto/prng.cpp
+        src/control.cpp \
+        src/connection.cpp \
+        src/chat.cpp \
+        src/common.cpp \
+            src/crypto/AES.cpp \
+            src/crypto/ECC.cpp \
+            src/crypto/prng.cpp
 
 HEADERS += \
     src/control.h \
@@ -43,5 +49,3 @@ HEADERS += \
 #	src/crypto/AES.h \
 	src/crypto/ECC.h \
 	src/crypto/prng.h
-
-# QMAKE_POST_LINK += $$QMAKE_COPY $$PWD/libs/mpir/mpir.dll C:/mpir.dll
