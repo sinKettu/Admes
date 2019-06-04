@@ -1,35 +1,8 @@
-//
-// Created by sin on 20.04.18.
-//
 #include <iostream>
-#include "hash.h"
 
 typedef unsigned char byte;
 
 byte** roundKeys;
-
-void out(byte* a, byte size)
-{
-    for (int i = 0; i < size; i++)
-    {
-        std::cout << (int)a[i] << "\t";
-    }
-    std::cout << std::endl;
-}
-
-void out(byte** a, byte num_row, byte num_col)
-{
-    for (int i = 0; i < num_row; i++)
-    {
-        for (int j = 0; j < num_col; j++)
-        {
-            std::cout << (int)a[i][j] << "\t";
-        }
-        std::cout << "\n";
-    }
-}
-
-
 
 byte pos[4][4] = {
         {2, 3, 1, 1},
@@ -134,14 +107,7 @@ void xorWords(byte* a, byte* b, byte* result)
     result[2] = a[2] ^ b[2];
     result[3] = a[3] ^ b[3];
 }
-/*
-byte xTime(byte a)
-{
-    bool firstBit = a >> 7;
-    a <<= 1;
-    return (! firstBit) ? a : a ^ (byte)0x1b;
-}
-*/
+
 byte mul(byte a, byte b)
 {
     byte deg = 0;
@@ -313,18 +279,16 @@ void invShiftRows(byte** state, byte nk)
             std::swap(state[i][0], state[i][2]);
             std::swap(state[i][1], state[i][3]);
         }
-        else
-           if((i + nk / 8) % 4 == 3)
-            {
-                rotBytes(state[i]);
-            }
-            else
-                if ((i + nk / 8) % 4 == 1)
-                {
-                    std::swap(state[i][0], state[i][3]);
-                    std::swap(state[i][3], state[i][1]);
-                    std::swap(state[i][3], state[i][2]);
-                }
+        else if((i + nk / 8) % 4 == 3)
+        {
+            rotBytes(state[i]);
+        }
+        else if ((i + nk / 8) % 4 == 1)
+        {
+            std::swap(state[i][0], state[i][3]);
+            std::swap(state[i][3], state[i][1]);
+            std::swap(state[i][3], state[i][2]);
+        }
     }
 }
 
@@ -410,232 +374,4 @@ void _invCipher(byte* enc, byte** result, byte nr, byte nk)
     invSubBytes(result);
     addRoundKey(result, 0, roundKeys);
 
-}
-
-void getFileSize(FILE* fin, long &size)
-{
-    fseek(fin, 0, SEEK_END);
-    size = ftell(fin);
-    rewind(fin);
-}
-
-void two2one(byte** a, byte* b)
-{
-    for (byte i = 0; i < 4; i++)
-    {
-        *(b + 4 * i) = *(*(a) + i);
-        *(b + 4 * i + 1) = *(*(a + 1) + i);
-        *(b + 4 * i + 2) = *(*(a + 2) + i);
-        *(b + 4 * i + 3) = *(*(a + 3) + i);
-    }
-}
-
-void copyWords(byte* a, byte* b)
-{
-    for (byte i = 0; i < 16; i++)
-    {
-        *(b + i) = *(a + i);
-    }
-}
-
-int encryptFile(FILE* fin, FILE* fout, byte* key, short type)
-{
-    byte* forXOR = new byte[16];
-    stringHash((char*)key, forXOR, 128);
-    byte* current = new byte[16];
-
-    byte nk, nr;
-    long size;
-
-    byte** tmp;
-    tmp = new byte*[4];
-    tmp[0] = new byte[4];
-    tmp[1] = new byte[4];
-    tmp[2] = new byte[4];
-    tmp[3] = new byte[4];
-
-    getFileSize(fin, size);
-
-    if (type == 128)
-    {
-        nk = 4;
-        nr = 10;
-    }
-    else
-        if(type == 256)
-        {
-            nk = 8;
-            nr = 14;
-        }
-        else
-            if (type == 192)
-            {
-                nk = 6;
-                nr = 12;
-            }
-            else
-                return 1;
-
-    roundKeys = new byte*[4 * (nr + 1)];
-    for (int i = 0; i < 4 * (nr + 1); i++)
-        roundKeys[i] = new byte[4];
-
-    KeyExpansion(key, 4, nr, nk, roundKeys);
-
-    out(key, 16);
-    out(forXOR, 16);
-
-    while (size >= 16)
-    {
-        fread(current, 1, 16, fin);
-        xorWords(current, forXOR);
-        _cipher(current, tmp, nr, nk);
-        two2one(tmp, forXOR);
-        fwrite(forXOR, 1, 16, fout);
-
-        size -= 16;
-    }
-
-    if (! size)
-    {
-        *current = 1;
-
-        for(byte i = 1; i < 16; i++)
-            *(current + i)  = 0;
-
-        xorWords(current, forXOR);
-        _cipher(current, tmp, nr, nk);
-        two2one(tmp, forXOR);
-        fwrite(forXOR, 1, 16, fout);
-    }
-    else
-    {
-        fread(current, 1, (size_t)size, fin);
-        *(current + size) = 1;
-
-        for(byte i = size + 1; i < 16; i++)
-            *(current + i)  = 0;
-
-        xorWords(current, forXOR);
-        _cipher(current, tmp, nr, nk);
-        two2one(tmp, forXOR);
-        fwrite(forXOR, 1, 16, fout);
-    }
-
-    fclose(fout);
-    fclose(fin);
-/*
-    delete[] forXOR;
-    delete[] current;
-
-    for (int i = 0; i < 4; i++)
-        delete[] tmp[i];
-
-    delete[] tmp;
-
-    for (int i = 0; i < 4 * (nr + 1); i++)
-        free(roundKeys[i]);
-
-    free(roundKeys);
-*/
-    return 0;
-
-}
-
-int decryptFile(FILE* fin, FILE* fout, byte* key, short type)
-{
-    byte* forXOR = new byte[16];
-    stringHash((char*)key, forXOR, 128);
-
-    byte nk, nr;
-    long size;
-    byte* current = new byte[16];
-    byte* forRead = new byte[16];
-
-    byte** tmp;
-    tmp = new byte*[4];
-    tmp[0] = new byte[4];
-    tmp[1] = new byte[4];
-    tmp[2] = new byte[4];
-    tmp[3] = new byte[4];
-
-    getFileSize(fin, size);
-
-    if (type == 128)
-    {
-        nk = 4;
-        nr = 10;
-    }
-    else
-        if(type == 256)
-        {
-            nk = 8;
-            nr = 14;
-        }
-        else
-            if (type == 192)
-            {
-                nk = 6;
-                nr = 12;
-            }
-            else
-                return 1;
-
-    roundKeys = new byte*[4 * (nr + 1)];
-    for (int i = 0; i < 4 * (nr + 1); i++)
-        roundKeys[i] = new byte[4];
-
-    KeyExpansion(key, 4, nr, nk, roundKeys);
-
-    out(key, 16 );
-    out(forXOR, 16);
-
-    fread(forRead, 1, 16, fin);
-
-    _invCipher(forRead, tmp, nr, nk);
-    two2one(tmp, current);
-    xorWords(current, forXOR);
-    copyWords(forRead, forXOR);
-
-    size -= 16;
-
-    while (size > 0)
-    {
-        fwrite(current, 1, 16, fout);
-
-        fread(forRead, 1, 16, fin);
-        _invCipher(forRead, tmp, nr, nk);
-        two2one(tmp, current);
-        xorWords(current, forXOR);
-        copyWords(forRead, forXOR);
-
-        size -= 16;
-    }
-
-    byte i = 15;
-
-    for (i;! *(current + i); i--) {}
-
-    if (i)
-        fwrite(current, 1, i, fout);
-
-    fclose(fout);
-    fclose(fin);
-/*
-    delete[] forXOR;
-    delete[] current;
-
-    for (i = 0; i < 4; i++)
-    {
-        delete[] tmp[i];
-    }
-
-    delete[] tmp;
-
-    for (int i = 0; i < 4 * (nr + 1); i++)
-        delete[] roundKeys[i];
-
-    delete[] roundKeys;
-*/
-    return 0;
 }
