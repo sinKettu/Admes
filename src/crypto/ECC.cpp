@@ -95,6 +95,89 @@ out)
     mpz_set(out.y, in.y);
 }
 
+void sqrt_modulo_p(mpz_t n, mpz_t p, mpz_t res)
+{
+    mpz_t 
+        ax,
+        bx,
+        b,
+        t;
+    mpz_init(ax);
+    mpz_init(bx);
+    mpz_init(b);
+    mpz_init(t);
+
+    // (n)
+    // (-) != -1
+    // (p)
+    if (mpz_legendre(n, p) == -1)
+    {
+        mpz_set_ui(res, 0);
+        mpz_clears(ax, bx, b, t, NULL);
+        return;
+    }
+
+    // (b)
+    // (-) == -1
+    // (p)
+    gmp_randstate_t state;
+    gmp_randinit_default(state);
+    mpz_urandomm(b, state, p);
+    while (mpz_legendre(b, p) != -1)
+        mpz_urandomm(b, state, p);
+    
+    // p-1 = (2^s) * t
+    mpz_sub_ui(ax, p, 1);
+    mpz_set_ui(bx, 1);
+    mpz_and(t, ax, bx);
+    uint16_t s = 0;
+    while (mpz_cmp_ui(res, 0) == 0)
+    {
+        s++;
+        mpz_div_2exp(ax, ax, 1);
+        mpz_and(t, ax, bx);
+    }
+    
+    // b = b^t (mod p)
+    mpz_powm(b, b, t, p);
+
+    // res= n^((t+1)/2) (mod p)
+    mpz_add_ui(res, t, 1);
+    mpz_div_ui(res, res, 2);
+    mpz_powm(res, n, res, p);
+
+    for (uint16_t i = 1; i < s; i++)
+    {
+        // exp = 2^(s - i - 1)
+        mpz_set_ui(bx, 2);
+        mpz_powm_ui(bx, bx, s - i - 1, p);
+
+        // base = (r^2 * a^-1)
+        if (!mpz_invert(ax, n, p))
+        {
+            mpz_clears(ax, bx, b, t, NULL);
+            mpz_set_ui(res, 0);
+            return;
+        }
+        mpz_mul(ax, ax, res);
+        mpz_mul(ax, ax, res);
+
+        // d = base ^ exp (mod p)
+        mpz_powm(ax, ax, bx, p);
+        mpz_sub_ui(bx, p, 1);
+
+        // if d = -1 (mod p)
+        if (mpz_cmp(ax, bx) == 0)
+        {
+            // res = res * b (mod p)
+            mpz_mul(res, res, b);
+            mpz_mod(res, res, p);
+        }
+    }
+
+    mpz_clears(ax, bx, b, t, NULL);
+}
+
 // Удалить и не позориться
 // Получение ординаты ЭК по абсциссе ЭК
 void point_expand(mpz_t &x, mpz_t &y)
