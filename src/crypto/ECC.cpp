@@ -95,13 +95,10 @@ out)
     mpz_set(out.y, in.y);
 }
 
-void sqrt_modulo_p(mpz_t n, mpz_t p, mpz_t res)
+void sqrt_modulo_p(mpz_t a, mpz_t p, mpz_t res)
 {
-    mpz_t 
-        ax,
-        bx,
-        b,
-        t;
+    mpz_t ax, bx, b, t, n;
+    mpz_init_set(n, a);
     mpz_init(ax);
     mpz_init(bx);
     mpz_init(b);
@@ -113,7 +110,7 @@ void sqrt_modulo_p(mpz_t n, mpz_t p, mpz_t res)
     if (mpz_legendre(n, p) == -1)
     {
         mpz_set_ui(res, 0);
-        mpz_clears(ax, bx, b, t, NULL);
+        mpz_clears(ax, bx, b, t, a, NULL);
         return;
     }
 
@@ -155,7 +152,7 @@ void sqrt_modulo_p(mpz_t n, mpz_t p, mpz_t res)
         // base = (r^2 * a^-1)
         if (!mpz_invert(ax, n, p))
         {
-            mpz_clears(ax, bx, b, t, NULL);
+            mpz_clears(ax, bx, b, t, a, NULL);
             mpz_set_ui(res, 0);
             return;
         }
@@ -175,10 +172,9 @@ void sqrt_modulo_p(mpz_t n, mpz_t p, mpz_t res)
         }
     }
 
-    mpz_clears(ax, bx, b, t, NULL);
+    mpz_clears(ax, bx, b, t, a, NULL);
 }
 
-// Удалить и не позориться
 // Получение ординаты ЭК по абсциссе ЭК
 void point_expand(mpz_t &x, mpz_t &y)
 {
@@ -192,8 +188,7 @@ void point_expand(mpz_t &x, mpz_t &y)
     mpz_add(y, y, tmp);
 
     mpz_add(y, y, current_elliptic_curve.b);
-    mpz_sqrt(y, y);
-    mpz_mod(y, y, current_elliptic_curve.p);
+    sqrt_modulo_p(y, current_elliptic_curve.p, y);
 
     mpz_clear(tmp);
 }

@@ -15,12 +15,6 @@ struct Point
     mpz_t x;
     mpz_t y;
 };
-
-//                  Point General(void);
-//                  Point copy(Point);
-//                  void __sn(int**, int*, int);
-//                  void _plus(Point, Point, Point*);
-//                  void _binmul(Point, mpz_t, Point &);
 //
 // Генератор псевдо-случайных чисел
 // Предположительно, криптостойкий
