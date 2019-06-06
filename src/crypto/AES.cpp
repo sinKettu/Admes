@@ -459,7 +459,7 @@ bool AES_ECB_Encrypt(byte* input_buffer, uint32_t ib_len,
 }
 
 bool AES_ECB_Decrypt(byte *input_buffer, uint32_t ib_len,
-                     byte **output_buffer, uint32_t ob_len,
+                     byte **output_buffer, uint32_t &ob_len,
                      byte *key, uint32_t k_len)
 {
     byte *tmp_buffer = new byte[ib_len];
@@ -491,6 +491,125 @@ bool AES_ECB_Decrypt(byte *input_buffer, uint32_t ib_len,
 
     for (uint32_t offset = 0; offset < ib_len; offset += 16)
         _invCipher(tmp_buffer + offset, nr, nk);
+    
+    for (; *(tmp_buffer + ib_len - 1) != 0x01; ib_len--) {}
+
+    ob_len = ib_len;
+    *output_buffer = new byte[ib_len];
+    memcpy(*output_buffer, tmp_buffer, ib_len);
+
+    for (byte i = 0; i < 4 * (nr + 1); i++)
+    {
+        // clear
+        *reinterpret_cast<uint32_t *>(roundKeys) = 0xffffffff;
+        delete[] roundKeys[i];
+    }
+
+    delete[] roundKeys;
+    delete[] tmp_buffer;
+    return true;
+}
+
+bool AES_CBC_Encrypt(byte *input_buffer, uint32_t ib_len,
+                     byte **output_buffer, uint32_t &ob_len,
+                     byte *key, uint32_t k_len,
+                     byte *iv)
+{
+    uint32_t remainder = ib_len & 0xf;
+    ob_len = remainder ? ib_len + 16 - remainder : ib_len;
+    *output_buffer = new byte[ob_len];
+    
+    memcpy(output_buffer, input_buffer, ib_len);
+    if (remainder)
+    {
+        *(*output_buffer + ib_len) = 0x01;
+        memset(*output_buffer + ib_len + 1, 0x00, 16 - remainder - 1);
+    }
+    
+    byte nk, nr;
+    if (k_len == 16)
+    {
+        nk = 4;
+        nr = 10;
+    }
+    else if (k_len == 24)
+    {
+        nk = 6;
+        nr = 12;
+    }
+    else if (k_len == 32)
+    {
+        nk = 8;
+        nr = 14;
+    }
+    else 
+        return false;
+    
+    roundKeys = new byte*[4 * (nr + 1)];
+    for (byte i = 0; i < 4 * (nr + 1); i++)
+        roundKeys[i] = new byte[4];
+    KeyExpansion(key, 4, nr, nk, roundKeys);
+
+    xorWords(*output_buffer, iv, 16);
+    _cipher(*output_buffer, nr, nk);
+
+    for (uint32_t offset = 16; offset < ob_len; offset += 16)
+    {
+        xorWords(*output_buffer + offset, *output_buffer + offset - 16, 16);
+        _cipher(*output_buffer + offset, nr, nk);
+    }
+    
+    for (byte i = 0; i < 4 * (nr + 1); i++)
+    {
+        // clear
+        *reinterpret_cast<uint32_t *>(roundKeys) = 0xffffffff;
+        delete[] roundKeys[i];
+    }
+
+    delete[] roundKeys;
+    return true;
+}
+
+bool AES_CBC_Encrypt(byte *input_buffer, uint32_t ib_len,
+                     byte **output_buffer, uint32_t &ob_len,
+                     byte *key, uint32_t k_len,
+                     byte *iv)
+{
+    byte *tmp_buffer = new byte[ib_len];
+    memcpy(tmp_buffer, input_buffer, ib_len);
+
+    byte nk, nr;
+    if (k_len == 16)
+    {
+        nk = 4;
+        nr = 10;
+    }
+    else if (k_len == 24)
+    {
+        nk = 6;
+        nr = 12;
+    }
+    else if (k_len == 32)
+    {
+        nk = 8;
+        nr = 14;
+    }
+    else 
+        return false;
+
+    roundKeys = new byte*[4 * (nr + 1)];
+    for (byte i = 0; i < 4 * (nr + 1); i++)
+        roundKeys[i] = new byte[4];
+    KeyExpansion(key, 4, nr, nk, roundKeys);
+
+    _invCipher(tmp_buffer, nr, nk);
+    xorWords(tmp_buffer, iv, 16);
+
+    for (uint32_t offset = 16; offset < ib_len; offset += 16)
+    {
+        _invCipher(tmp_buffer + offset, nr, nk);
+        xorWords(tmp_buffer + offset, input_buffer + offset - 16, 16);
+    }
     
     for (; *(tmp_buffer + ib_len - 1) != 0x01; ib_len--) {}
 
