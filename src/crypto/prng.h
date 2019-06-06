@@ -8,7 +8,11 @@
 
 #endif //OCCULUS_PRNG_H
 
-#include "mpir.h"
+#if defined(_WIN32) || defined(_WIN64)
+    #include "libs/mpir/mpir.h"
+#else
+    #include <mpir.h>
+#endif
 
 struct Point
 {
