@@ -92,9 +92,9 @@ byte xTime[256] = {
 };
 
 // Pocedure for encrypt...
-void xorWords(byte* a, byte* b)
+void xorWords(byte* a, byte* b, int len)
 {
-    for (byte i = 0; i < 16; i++)
+    for (byte i = 0; i < len; i++)
     {
         *(a + i) = *(b + i) ^ *(a + i);
     }
@@ -220,18 +220,16 @@ void shiftRows(byte** state, byte nk)
             std::swap(state[i][0], state[i][2]);
             std::swap(state[i][1], state[i][3]);
         }
-        else
-            if((i + nk / 8) % 4 == 3)
-            {
-                std::swap(state[i][0], state[i][3]);
-                std::swap(state[i][3], state[i][1]);
-                std::swap(state[i][3], state[i][2]);
-            }
-            else
-                if ((i + nk / 8) % 4 == 1)
-                {
-                    rotBytes(state[i]);
-                }
+        else if((i + nk / 8) % 4 == 3)
+        {
+            std::swap(state[i][0], state[i][3]);
+            std::swap(state[i][3], state[i][1]);
+            std::swap(state[i][3], state[i][2]);
+        }
+        else if ((i + nk / 8) % 4 == 1)
+        {
+            rotBytes(state[i]);
+        }
     }
 }
 
@@ -324,10 +322,12 @@ void invMixColumns(byte** state)
     }
 }
 
-void _cipher(byte* mes, byte** result, byte nr, byte nk)
+void _cipher(byte* mes, byte nr, byte nk)
 {
+    byte** result = new byte*[4];
     for (byte i = 0; i < 4; i++)
     {
+        result[i] = new byte[4];
         result[i][0] = mes[i];
         result[i][1] = mes[i + 4];
         result[i][2] = mes[i + 8];
@@ -347,12 +347,24 @@ void _cipher(byte* mes, byte** result, byte nr, byte nk)
     subBytes(result);
     shiftRows(result, nk);
     addRoundKey(result, nr, roundKeys);
-}
 
-void _invCipher(byte* enc, byte** result, byte nr, byte nk)
-{
     for (byte i = 0; i < 4; i++)
     {
+        mes[i] = result[i][0];
+        mes[i + 4] = result[i][1];
+        mes[i + 8] = result[i][2];
+        mes[i + 12] = result[i][3];
+        delete[] result[i];
+    }
+    delete[] result;
+}
+
+void _invCipher(byte* enc, byte nr, byte nk)
+{
+    byte** result = new byte*[4];
+    for (byte i = 0; i < 4; i++)
+    {
+        result[i] = new byte[4];
         result[i][0] = enc[i];
         result[i][1] = enc[i + 4];
         result[i][2] = enc[i + 8];
@@ -373,4 +385,13 @@ void _invCipher(byte* enc, byte** result, byte nr, byte nk)
     invSubBytes(result);
     addRoundKey(result, 0, roundKeys);
 
+    for (byte i = 0; i < 4; i++)
+    {
+        enc[i] = result[i][0];
+        enc[i + 4] = result[i][1];
+        enc[i + 8] = result[i][2];
+        enc[i + 12] = result[i][3];
+        delete[] result[i];
+    }
+    delete[] result;
 }
