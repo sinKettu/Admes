@@ -1,4 +1,5 @@
-#include <iostream>
+#include <cstring> // memcpy
+#include <string> // std::swap
 
 typedef unsigned char byte;
 
@@ -394,4 +395,61 @@ void _invCipher(byte* enc, byte nr, byte nk)
         delete[] result[i];
     }
     delete[] result;
+}
+
+bool AES_ECB_Encrypt(byte* input_buffer, uint32_t ib_len, 
+                     byte* output_buffer, uint32_t ob_len,
+                     byte* key, uint32_t k_len)
+{
+    uint32_t remainder = ib_len & 0xf;
+    if (remainder && ob_len - ib_len != 16 - remainder)
+        return false;
+    if (!remainder && ob_len != ib_len)
+        return false;
+    
+    memcpy(output_buffer, input_buffer, ib_len);
+    if (remainder)
+    {
+        *(output_buffer + ib_len) = 0x01;
+        memset(output_buffer + ib_len + 1, 0x00, 16 - remainder - 1);
+    }
+    uint32_t offset = 0;
+    byte nk, nr;
+    if (k_len == 16)
+    {
+        nk = 4;
+        nr = 10;
+    }
+    else if (k_len == 24)
+    {
+        nk = 6;
+        nr = 12;
+    }
+    else if (k_len == 32)
+    {
+        nk = 8;
+        nr = 14;
+    }
+    else 
+        return false;
+    
+    roundKeys = new byte*[4 * (nr + 1)];
+    for (byte i = 0; i < 4 * (nr + 1); i++)
+        roundKeys[i] = new byte[4];
+    KeyExpansion(key, 4, nr, nk, roundKeys);
+
+    while (offset < ob_len)
+    {
+        _cipher(output_buffer + offset, nr, nk);
+        offset += 16;
+    }
+    
+    for (byte i = 0; i < 4 * (nr + 1); i++)
+    {
+        // clear
+        *reinterpret_cast<uint32_t *>(roundKeys) = 0xffffffff;
+        delete[] roundKeys[i];
+    }
+
+    delete[] roundKeys;
 }
