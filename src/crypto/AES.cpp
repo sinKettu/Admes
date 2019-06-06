@@ -192,6 +192,7 @@ void KeyExpansion(byte* key, short nb, short nr, short nk, byte** w)
     }
 }
 
+// make without temporary variable
 void addRoundKey(byte** st, byte round, byte** w)
 {
     byte** roundKey;
@@ -212,7 +213,9 @@ void addRoundKey(byte** st, byte round, byte** w)
     for (int i = 0; i < 4; i++)
     {
         xorWords(st[i], roundKey[i], st[i]);
+        delete[] roundKey[i];
     }
+    delete[] roundKey;
 }
 
 void shiftRows(byte** state, byte nk)
@@ -418,7 +421,7 @@ bool AES_ECB_Encrypt(byte* input_buffer, uint32_t ib_len,
         *(output_buffer + ib_len) = 0x01;
         memset(output_buffer + ib_len + 1, 0x00, 16 - remainder - 1);
     }
-    uint32_t offset = 0;
+    
     byte nk, nr;
     if (k_len == 16)
     {
@@ -443,11 +446,8 @@ bool AES_ECB_Encrypt(byte* input_buffer, uint32_t ib_len,
         roundKeys[i] = new byte[4];
     KeyExpansion(key, 4, nr, nk, roundKeys);
 
-    while (offset < ob_len)
-    {
+    for (uint32_t offset = 0; offset < ob_len; offset += 16)
         _cipher(output_buffer + offset, nr, nk);
-        offset += 16;
-    }
     
     for (byte i = 0; i < 4 * (nr + 1); i++)
     {
@@ -457,4 +457,5 @@ bool AES_ECB_Encrypt(byte* input_buffer, uint32_t ib_len,
     }
 
     delete[] roundKeys;
+    return true;
 }
