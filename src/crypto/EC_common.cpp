@@ -5,7 +5,8 @@ typedef unsigned char byte;
 const unsigned char listLength = 6;
 
 // 6 elliptic curves from "STANDARDS FOR EFFICIENT CRYPTOGRAPHY (SEC2)"
-// Order: p (EC prime), a, b, q (EC group order), X-point, Y-point (abscissa and ordinate of generator)
+// Order: p (EC prime), a, b, q (EC group order), 
+// X-point, Y-point (abscissa and ordinate of generator)
 char ec_list[listLength][6][133] {
     // secp128r1
     {"fffffffdffffffffffffffffffffffff\0" , "fffffffdfffffffffffffffffffffffc\0", "e87579c11079f43dd824993c2cee5ed3\0", "fffffffe0000000075a30d1b9038a115\0", "161ff7528b899b2d0c28607ca52c5b86\0", "cf5ac8395bafeb13c02da292dded7a83\0"},
@@ -21,6 +22,21 @@ char ec_list[listLength][6][133] {
     {"1ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff\0", "1fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc\0", "51953eb9618e1c9a1f929a21a0b68540eea2da725b99b315f3b8b489918ef109e156193951ec7e937b1652c0bd3bb1bf073573df883d2c34f1ef451fd46b503f00\0", "1fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffa51868783bf2f966b7fcc0148f709a5d03bb5c9b8899c47aebb6fb71e91386409\0", "c6858e06b70404e9cd9e3ecb662395b4429c648139053fb521f828af606b4d3dbaa14b5e77efe75928fe1dc127a2ffa8de3348b3c1856a429bf97e7e31c2e5bd66\0", "11839296a789a3bc0045c8a5fb42c7d1bd998f54449579b446817afbd17273e662c97ee72995ef42640c550b9013fad0761353c7086a272c24088be94769fd16650\0"}        
 };
 
+unsigned int prime_lengthes[6] {
+    // secp128r1 
+    128,
+    // secp128r2
+    128,
+    // secp256k1
+    256,
+    // secp256r1
+    256,
+    // secp384r1
+    384,
+    // secp521r1
+    521
+};
+
 EllipticCurve *ec_init(unsigned char num)
 {
     if (num >= listLength)
@@ -34,7 +50,8 @@ EllipticCurve *ec_init(unsigned char num)
     mpz_init_set_str(ec->G.x, ec_list[num][4], 16);
     mpz_init_set_str(ec->G.y, ec_list[num][0], 16);
 
-    mpz_out_str(stdout, 16, ec->p); printf("\n");
+    ec->p_len = prime_lengthes[num];
+
     return ec;
 }
 

@@ -9,11 +9,12 @@ struct Point
 
 struct EllipticCurve
 {
-    mpz_t a; // Coefficient
-    mpz_t b; // Coefficient
-    mpz_t p; // Prime
-    mpz_t q; // Order
-    Point G; // Group generator
+    mpz_t a;            // Coefficient
+    mpz_t b;            // Coefficient
+    mpz_t p;            // Prime
+    mpz_t q;            // Order
+    unsigned int p_len; // Prime length in bits
+    Point G;            // Group generator
 };
 
 // Public and private ECC keys
