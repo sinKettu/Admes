@@ -3,6 +3,7 @@
 #include <QTextStream>
 #include "control.h"
 #include "common.h"
+#include "crypto/ECC.h"
 
 void help()
 {
@@ -45,6 +46,8 @@ void help()
 
 int main(int argc, char *argv[])
 {
+    ecc_test();
+    exit(0);
     QCoreApplication a(argc, argv);
     QTextStream qin(stdin);
     QString input;

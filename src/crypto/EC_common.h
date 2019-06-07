@@ -52,12 +52,12 @@ void ec_deinit(EllipticCurve *ec);
 
 void pntcpy(Point src, Point dst);
 
-bool pntExpand(EllipticCurve *ec, mpz_t x, mpz_t y);
+bool pntExpand(EllipticCurve *ec, mpz_t x, mpz_t &y);
 
-void pntSum(EllipticCurve *ec, Point left, Point right, Point result);
+void pntSum(EllipticCurve *ec, Point left, Point right, Point &result);
 
-void pntMul(EllipticCurve *ec, Point pnt, mpz_t k, Point result);
+void pntMul(EllipticCurve *ec, Point pnt, mpz_t k, Point &result);
 
-void ecc_cstr_to_mpz(unsigned char* a, unsigned int len, mpz_t b);
+void ecc_cstr_to_mpz(unsigned char* a, unsigned int len, mpz_t &b);
 
 void ecc_mpz_to_cstr(mpz_t a, unsigned char** b, unsigned int &len);
