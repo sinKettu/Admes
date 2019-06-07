@@ -46,7 +46,7 @@ struct ECC_signature
     unsigned char* s;
 };
 
-bool ec_init(EllipticCurve *ec, unsigned char num);
+EllipticCurve *ec_init(unsigned char num);
 
 void ec_deinit(EllipticCurve *ec);
 
