@@ -39,13 +39,15 @@ SOURCES += \
         src/common.cpp \
             src/crypto/AES.cpp \
             src/crypto/ECC.cpp \
-            src/crypto/prng.cpp
+            src/crypto/prng.cpp \
+            src/crypto/EC_common.cpp
 
 HEADERS += \
     src/control.h \
     src/connection.h \
     src/chat.h \
     src/common.h \
-#	src/crypto/AES.h \
+	src/crypto/AES.h \
 	src/crypto/ECC.h \
-	src/crypto/prng.h
+	src/crypto/prng.h \
+    src/crypto/EC_common.h
