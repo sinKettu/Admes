@@ -104,6 +104,8 @@ QByteArray ECC_Encrypt(EllipticCurve *ec, Point pk, QByteArray message)
         
         unsigned int data_len = 16;
         data_len += data->g_len_y + data->g_len_x + data->s_len_x + data->s_len_y;
+        
+        // исправить, записываются только указатели на массивы
         result.append(reinterpret_cast<char *>(data), data_len);
 
         delete[] data->general_x;
@@ -117,7 +119,7 @@ QByteArray ECC_Encrypt(EllipticCurve *ec, Point pk, QByteArray message)
     return result;
 }
 
-int ECC_Decrypt(EllipticCurve *ec, mpz_t prk, ECC_encrypted_data *data, unsigned char **message, unsigned int &m_len)
+int _decrypt(EllipticCurve *ec, mpz_t prk, ECC_encrypted_data *data, unsigned char **message, unsigned int &m_len)
 {
     // Загрузка первой (side) части ключа
 
@@ -148,6 +150,26 @@ int ECC_Decrypt(EllipticCurve *ec, mpz_t prk, ECC_encrypted_data *data, unsigned
     mpz_clear(general.x);
 
     return 0;
+}
+
+QByteArray ECC_Decrypt(EllipticCurve *ec, mpz_t prk, QByteArray encrypted)
+{
+    QByteArray result;
+    unsigned int step = ec->p_len / 8 - 3;
+    unsigned int offset = 0;
+    char *enc = encrypted.data();
+    ECC_encrypted_data *data = new ECC_encrypted_data();
+    while (offset < encrypted.length())
+    {
+        // set side_x
+        unsigned int ed_len = 0;
+        data->s_len_x = *reinterpret_cast<unsigned int*>(enc + offset);
+        data->side_x = new unsigned char[data->g_len_x];
+        memcpy(data->side_x, enc + offset + 4, data->s_len_x);
+        ed_len += 4 + data->s_len_x;
+        
+        // set ...
+    }
 }
 
 int ECC_Sign(EllipticCurve *ec, mpz_t prk, unsigned char *message, unsigned int m_len, ECC_signature *signature)
@@ -265,7 +287,7 @@ void ecc_test()
     EllipticCurve *ec = ec_init(4);
     Keychain *kc = ecc_keygen(ec);
 
-    QByteArray mes = QByteArray("HelloWo");
+    QByteArray mes = QByteArray("HelloWorldHelloWorldHelloWorldHelloWorldHelloWorld");
     QByteArray res;
     res = ECC_Encrypt(ec, kc->PublicKey, mes);
 
