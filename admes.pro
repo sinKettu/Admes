@@ -15,12 +15,6 @@ win32|win64 {
     HEADERS += $$PWD/libs/mpir/mpir.h
     LIBS += $$PWD/libs/mpir/mpir.dll
     LIBS += libws2_32
-    # EXTRA_BINFILES += $$PWD/libs/mpir/mpir.dll
-    # EXTRA_BINFILES_WIN = $${EXTRA_BINFILES}
-    # EXTRA_BINFILES_WIN ~= s,/,\\,g
-    # DESTDIR_WIN = $${DESTDIR}
-    # DESTDIR_WIN ~= s,/,\\,g
-    # QMAKE_POST_LINK += $$quote(cmd /c copy /y $${EXTRA_BINFILES_WIN} %%{DESTDIR_WIN})
 }
 else {
     LIBS += -lmpir
