@@ -33,6 +33,8 @@ bool ec_init(EllipticCurve *ec, unsigned char num)
     mpz_init_set_str(ec->q, ec_list[num][3], 16);
     mpz_init_set_str(ec->G.x, ec_list[num][4], 16);
     mpz_init_set_str(ec->G.y, ec_list[num][0], 16);
+
+    return true;
 }
 
 void ec_deinit(EllipticCurve *ec)
