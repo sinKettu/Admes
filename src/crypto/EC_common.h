@@ -40,9 +40,9 @@ struct ECC_encrypted_data
 // Signature based on ECC
 struct ECC_signature
 {
-    int r_len;
+    unsigned int r_len;
     unsigned char* r;
-    int s_len;
+    unsigned int s_len;
     unsigned char* s;
 };
 
@@ -57,3 +57,7 @@ bool pntExpand(EllipticCurve *ec, mpz_t x, mpz_t y);
 void pntSum(EllipticCurve *ec, Point left, Point right, Point result);
 
 void pntMul(EllipticCurve *ec, Point pnt, mpz_t k, Point result);
+
+void ecc_cstr_to_mpz(unsigned char* a, unsigned int len, mpz_t b);
+
+void ecc_mpz_to_cstr(mpz_t a, unsigned char** b, unsigned int &len);

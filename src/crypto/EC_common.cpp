@@ -278,7 +278,7 @@ void pntMul(EllipticCurve *ec, Point point, mpz_t num, Point result)
     mpz_clears(tmp, k, pnt.x, pnt.y);
 }
 
-void ecc_mpz_to_cstr(mpz_t a, byte** b, int &len)
+void ecc_mpz_to_cstr(mpz_t a, byte** b, unsigned int &len)
 {
     len = 0;
     mpz_t tmp;  mpz_init_set_ui(tmp, 1);
@@ -303,7 +303,7 @@ void ecc_mpz_to_cstr(mpz_t a, byte** b, int &len)
     mpz_clear(xff);
 }
 
-void ecc_cstr_to_mpz(byte* a, int len, mpz_t b)
+void ecc_cstr_to_mpz(unsigned char* a, unsigned int len, mpz_t b)
 {
     mpz_t tmp;
     mpz_init(tmp);
