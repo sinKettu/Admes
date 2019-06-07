@@ -1,9 +1,4 @@
-#pragma once
-//
-// Created by sin on 06.11.18.
-//
-#include "prng.h" 
-#include "EC_common.h"
+#include "prng.h"
 
 #ifndef OCCULUS_ECC_H
 #define OCCULUS_ECC_H

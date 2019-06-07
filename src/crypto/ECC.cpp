@@ -2,8 +2,6 @@
 // Created by sin on 06.11.18.
 //
 #include "ECC.h"
-#include <iostream>
-using namespace std;
 
 Keychain *ecc_keygen(EllipticCurve *ec)
 {   
