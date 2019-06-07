@@ -69,23 +69,23 @@ int ECC_Encrypt(EllipticCurve *ec, Point pk, unsigned char *message, unsigned in
     return 1;
 }
 
-int ECC_Decrypt(EllipticCurve *ec, mpz_t prk, ECC_encrypted_data data, unsigned char **message, unsigned int &m_len)
+int ECC_Decrypt(EllipticCurve *ec, mpz_t prk, ECC_encrypted_data *data, unsigned char **message, unsigned int &m_len)
 {
     // Загрузка первой (side) части ключа
 
     Point side;
     mpz_init(side.x);
     mpz_init(side.y);
-    ecc_cstr_to_mpz(data.side_x, data.s_len_x, side.x);
-    ecc_cstr_to_mpz(data.side_y, data.s_len_y, side.y);
+    ecc_cstr_to_mpz(data->side_x, data->s_len_x, side.x);
+    ecc_cstr_to_mpz(data->side_y, data->s_len_y, side.y);
 
     // Загрузка второй (general) части ключа
 
     Point general;
     mpz_init(general.x);
     mpz_init(general.y);
-    ecc_cstr_to_mpz(data.general_x, data.g_len_x, general.x);
-    ecc_cstr_to_mpz(data.general_y, data.g_len_y, general.y);
+    ecc_cstr_to_mpz(data->general_x, data->g_len_x, general.x);
+    ecc_cstr_to_mpz(data->general_y, data->g_len_y, general.y);
 
     // Расшифрование
 
@@ -100,11 +100,6 @@ int ECC_Decrypt(EllipticCurve *ec, mpz_t prk, ECC_encrypted_data data, unsigned 
     mpz_clear(general.x);
 
     return 0;
-}
-
-void ecc_test()
-{
-    
 }
 
 int ECC_Sign(EllipticCurve *ec, mpz_t prk, unsigned char *message, unsigned int m_len, ECC_signature *signature)
@@ -161,6 +156,7 @@ int ECC_Sign(EllipticCurve *ec, mpz_t prk, unsigned char *message, unsigned int 
     mpz_clear(tmp);
     mpz_clear(r);
     mpz_clear(s);
+    mpz_clear(cur);
 
     return 1;
 }
@@ -208,6 +204,26 @@ int ecc_check_sign(EllipticCurve *ec, Point pk, ECC_signature *signature, unsign
 
     mpz_mod(z, C.x, ec->q);
 
-    // ???
-    return mpz_cmp(z, r) == 0;
+    int result = mpz_cmp(z, r) == 0 ? 1 : 0;
+    mpz_clears(r, s, z, cur, NULL);
+    return result;
+}
+
+void ecc_test()
+{
+    unsigned char *message = (unsigned char *)"HelloWorld!";
+    mpz_t tmp;
+    mpz_init_set_str(tmp, "2346345634123453245345", 10);
+    EPNG_init(0, tmp);
+    EllipticCurve *ec = ec_init(4);
+    Keychain *kc = ecc_keygen(ec);
+    ECC_encrypted_data *data = new ECC_encrypted_data();
+    ECC_Encrypt(ec, kc->PublicKey, (unsigned char*)message, 11, data);
+    unsigned char *dec;
+    unsigned int l;
+    ECC_Decrypt(ec, kc->PrivateKey, data, &dec, l);
+    printf("%s\n", dec);
+
+    ec_deinit(ec);
+    delete ec;
 }
