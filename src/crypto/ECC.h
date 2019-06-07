@@ -18,7 +18,7 @@ int ECC_Sign(EllipticCurve *ec, mpz_t prk, unsigned char *message, unsigned int 
 
 // Проверка цифровой подписи
 // ГОСТ 34.10-2012
-int ecc_check_sign(EllipticCurve *ec, Point pk, ECC_signature *signature, unsigned char* hash, int h_len);
+int ECC_Check(EllipticCurve *ec, Point pk, ECC_signature *signature, unsigned char* hash, int h_len);
 
 void ecc_test();
 

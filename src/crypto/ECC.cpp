@@ -5,11 +5,12 @@
 
 Keychain *ecc_keygen(EllipticCurve *ec)
 {   
-    Keychain *kc;
     if (! EPNG_inited())
     {
-        kc = nullptr;
+        return nullptr;
     }
+
+    Keychain *kc = new Keychain(); 
     mpz_init(kc->PrivateKey);
     mpz_init(kc->PublicKey.x);
     mpz_init(kc->PublicKey.y);
@@ -32,6 +33,12 @@ int ECC_Encrypt(EllipticCurve *ec, Point pk, unsigned char *message, unsigned in
     mpz_init(mes.x);
     mpz_init(mes.y);
     ecc_cstr_to_mpz(message, m_len, mes.x);
+
+    if (mpz_cmp(mes.x, ec->p) > 0)
+    {
+        mpz_clears(mes.x, mes.y, NULL);
+        return 0;
+    }
 
     // Представление сообщения в виде точки на ЭК
 
@@ -161,7 +168,7 @@ int ECC_Sign(EllipticCurve *ec, mpz_t prk, unsigned char *message, unsigned int 
     return 1;
 }
 
-int ecc_check_sign(EllipticCurve *ec, Point pk, ECC_signature *signature, unsigned char* hash, int h_len)
+int ECC_Check(EllipticCurve *ec, Point pk, ECC_signature *signature, unsigned char* hash, int h_len)
 {
     // Шаг 1
 
@@ -211,19 +218,22 @@ int ecc_check_sign(EllipticCurve *ec, Point pk, ECC_signature *signature, unsign
 
 void ecc_test()
 {
-    unsigned char *message = (unsigned char *)"HelloWorld!";
+    unsigned char *message = (unsigned char *)"HelloWo\0\0";
     mpz_t tmp;
     mpz_init_set_str(tmp, "2346345634123453245345", 10);
     EPNG_init(0, tmp);
     EllipticCurve *ec = ec_init(4);
     Keychain *kc = ecc_keygen(ec);
+
     ECC_encrypted_data *data = new ECC_encrypted_data();
-    ECC_Encrypt(ec, kc->PublicKey, (unsigned char*)message, 11, data);
+    ECC_Encrypt(ec, kc->PublicKey, (unsigned char*)message, 9, data);
+
     unsigned char *dec;
     unsigned int l;
     ECC_Decrypt(ec, kc->PrivateKey, data, &dec, l);
-    printf("%s\n", dec);
 
+    printf("%s\n", dec);
+    EPNG_delete();
     ec_deinit(ec);
     delete ec;
 }
