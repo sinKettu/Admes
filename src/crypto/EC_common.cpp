@@ -42,7 +42,7 @@ void ec_deinit(EllipticCurve *ec)
     mpz_clears(ec->p, ec->a, ec->b, ec->q, ec->G.x, ec->G.y, NULL);
 }
 
-void pntcpy(Point src, Point dst)
+void pntcpy(Point src, Point &dst)
 {
     mpz_set(dst.x, src.x);
     mpz_set(dst.y, src.y);
@@ -147,6 +147,20 @@ bool pntExpand(EllipticCurve *ec, mpz_t x, mpz_t &y)
 
 void pntSum(EllipticCurve *ec, Point left, Point right, Point &result)
 {
+    if (! mpz_cmp_ui(left.x, 0) && ! mpz_cmp_ui(left.y, 0))
+    {
+        mpz_set(result.x, right.x);
+        mpz_set(result.y, right.y);
+        return;
+
+    }
+    if (! mpz_cmp_ui(right.x, 0) && ! mpz_cmp_ui(right.y, 0))
+    {
+        mpz_set(result.x, left.x);
+        mpz_set(result.y, left.y);
+        return;
+    }
+
     Point p1, p2;
     mpz_init(p1.x);
     mpz_init(p1.y);
@@ -155,18 +169,7 @@ void pntSum(EllipticCurve *ec, Point left, Point right, Point &result)
     pntcpy(left, p1);
     pntcpy(right, p2);
 
-    if (! mpz_cmp_ui(left.x, 0) && ! mpz_cmp_ui(left.y, 0))
-    {
-        mpz_set(result.x, p2.x);
-        mpz_set(result.y, p2.y);
-
-    }
-    else if (! mpz_cmp_ui(right.x, 0) && ! mpz_cmp_ui(right.y, 0))
-    {
-        mpz_set(result.x, p1.x);
-        mpz_set(result.y, p1.y);
-    }
-    else if (mpz_cmp(p1.x, p2.x) != 0)
+    if (mpz_cmp(p1.x, p2.x) != 0)
     {
         mpz_t tmp, g, s;
         mpz_init(tmp);
@@ -265,6 +268,15 @@ void pntMul(EllipticCurve *ec, Point point, mpz_t num, Point &result)
 
     mpz_div_ui(k, num, 2);
     pntcpy(point, pnt);
+
+    mpz_out_str(stdout, 16, point.x);
+    printf("\n");
+    mpz_out_str(stdout, 16, point.y);
+    printf("\n");
+    mpz_out_str(stdout, 16, pnt.x);
+    printf("\n");
+    mpz_out_str(stdout, 16, pnt.y);
+    printf("\n");
 
     while (mpz_cmp_ui(k, 0) > 0)
     {

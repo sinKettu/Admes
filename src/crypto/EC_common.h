@@ -50,7 +50,7 @@ EllipticCurve *ec_init(unsigned char num);
 
 void ec_deinit(EllipticCurve *ec);
 
-void pntcpy(Point src, Point dst);
+void pntcpy(Point src, Point &dst);
 
 bool pntExpand(EllipticCurve *ec, mpz_t x, mpz_t &y);
 
