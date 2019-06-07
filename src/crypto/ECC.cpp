@@ -22,7 +22,7 @@ Keychain *ecc_keygen(EllipticCurve *ec)
     return kc;
 }
 
-int ECC_Encrypt(EllipticCurve *ec, Point pk, unsigned char *message, unsigned int m_len, ECC_encrypted_data *data)
+int _encrypt(EllipticCurve *ec, Point pk, unsigned char *message, unsigned int m_len, ECC_encrypted_data *data)
 {
     if (! EPNG_inited())
     {
@@ -74,6 +74,47 @@ int ECC_Encrypt(EllipticCurve *ec, Point pk, unsigned char *message, unsigned in
     mpz_clear(tmp_point.y);
 
     return 1;
+}
+
+QByteArray ECC_Encrypt(EllipticCurve *ec, Point pk, QByteArray message)
+{
+    QByteArray result;
+    unsigned int step = ec->p_len / 8 - 3;
+    unsigned char *mid = new unsigned char[step + 2];
+    ECC_encrypted_data *data = new ECC_encrypted_data();
+    for (unsigned int offset = 0; offset < message.length(); offset += step)
+    {
+        unsigned int mid_len = qMin(step, message.length() - offset);
+        QByteArray qmid = message.mid(offset, mid_len);
+        unsigned short appendix = 0x0000;
+        memcpy(mid, qmid.data(), mid_len);
+        *reinterpret_cast<unsigned short *>(mid + step) = appendix;
+        while (!_encrypt(ec, pk, mid, step + 2, data))
+        {
+            appendix++;
+            *reinterpret_cast<unsigned short *>(mid + step) = appendix;
+            if (!appendix)
+            {
+                result.clear();
+                delete data;
+                delete[] mid;
+                return result;
+            }
+        }
+        
+        unsigned int data_len = 16;
+        data_len += data->g_len_y + data->g_len_x + data->s_len_x + data->s_len_y;
+        result.append(reinterpret_cast<char *>(data), data_len);
+
+        delete[] data->general_x;
+        delete[] data->general_y;
+        delete[] data->side_x;
+        delete[] data->side_y;
+    }
+
+    delete[] mid;
+    delete data;
+    return result;
 }
 
 int ECC_Decrypt(EllipticCurve *ec, mpz_t prk, ECC_encrypted_data *data, unsigned char **message, unsigned int &m_len)
@@ -218,19 +259,19 @@ int ECC_Check(EllipticCurve *ec, Point pk, ECC_signature *signature, unsigned ch
 
 void ecc_test()
 {
-    unsigned char *message = (unsigned char *)"HelloWo\0\0";
     mpz_t tmp;
     mpz_init_set_str(tmp, "2346345634123453245345", 10);
     EPNG_init(0, tmp);
     EllipticCurve *ec = ec_init(4);
     Keychain *kc = ecc_keygen(ec);
 
-    ECC_encrypted_data *data = new ECC_encrypted_data();
-    ECC_Encrypt(ec, kc->PublicKey, (unsigned char*)message, 9, data);
+    QByteArray mes = QByteArray("HelloWo");
+    QByteArray res;
+    res = ECC_Encrypt(ec, kc->PublicKey, mes);
 
     unsigned char *dec;
     unsigned int l;
-    ECC_Decrypt(ec, kc->PrivateKey, data, &dec, l);
+    //ECC_Decrypt(ec, kc->PrivateKey, data, &dec, l);
 
     printf("%s\n", dec);
     EPNG_delete();

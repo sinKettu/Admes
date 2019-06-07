@@ -1,13 +1,15 @@
-#include "prng.h"
-
 #ifndef OCCULUS_ECC_H
 #define OCCULUS_ECC_H
+
+#include <QByteArray>
+#include "prng.h"
 
 // Генерация публичного и закрытого ключей
 Keychain *ecc_keygen(EllipticCurve *ec);
 
 // Шифрование сообщения
-int ECC_Encrypt(EllipticCurve *ec, Point pk, unsigned char *message, unsigned int m_len, ECC_encrypted_data *data);
+QByteArray ECC_Encrypt(EllipticCurve *ec, Point pk, QByteArray message);
+//int ECC_Encrypt(EllipticCurve *ec, Point pk, unsigned char *message, unsigned int m_len, ECC_encrypted_data *data);
 
 // Расшифрование сообщения
 int ECC_Decrypt(EllipticCurve *ec, mpz_t prk, ECC_encrypted_data *data, unsigned char **message, unsigned int &m_len);
