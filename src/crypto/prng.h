@@ -1,5 +1,3 @@
-#pragma once
-
 #ifndef OCCULUS_PRNG_H
 #define OCCULUS_PRNG_H
 

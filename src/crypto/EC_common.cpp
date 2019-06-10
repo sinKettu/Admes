@@ -58,6 +58,7 @@ EllipticCurve *ec_init(unsigned char num)
 void ec_deinit(EllipticCurve *ec)
 {
     mpz_clears(ec->p, ec->a, ec->b, ec->q, ec->G.x, ec->G.y, NULL);
+    delete ec;
 }
 
 void pntcpy(Point src, Point &dst)
