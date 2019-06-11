@@ -174,6 +174,7 @@ void pntSum(EllipticCurve *ec, Point left, Point right, Point &result)
 {
     if (! mpz_cmp_ui(left.x, 0) && ! mpz_cmp_ui(left.y, 0))
     {
+
         mpz_set(result.x, right.x);
         mpz_set(result.y, right.y);
         return;
@@ -181,6 +182,13 @@ void pntSum(EllipticCurve *ec, Point left, Point right, Point &result)
     }
     if (! mpz_cmp_ui(right.x, 0) && ! mpz_cmp_ui(right.y, 0))
     {
+
+        char *out;
+        out = mpz_get_str(NULL, 16, left.x);
+        printf("%s\n", out);
+        out = mpz_get_str(NULL, 16, left.y);
+        printf("%s\n\n", out);
+
         mpz_set(result.x, left.x);
         mpz_set(result.y, left.y);
         return;
@@ -300,40 +308,40 @@ void pntSum(EllipticCurve *ec, Point left, Point right, Point &result)
 
 void pntMul(EllipticCurve *ec, Point point, mpz_t num, Point &result)
 {
-    mpz_t tmp, k;
+    mpz_set_ui(result.x, 0);
+    mpz_set_ui(result.y, 0);
     Point pnt;
-    mpz_init(k);
-    mpz_init(pnt.x);
-    mpz_init(pnt.y);
-    mpz_init_set_ui(tmp, 1);
-    mpz_and(tmp, num, tmp);
+    mpz_t tmp, k;
+    mpz_inits(tmp, k, pnt.x, pnt.y, NULL);
+    mpz_set(k, num);
+    //pntcpy(point, pnt);
 
-    if (mpz_cmp_ui(tmp, 0) == 0)
-    {
-        mpz_set_ui(result.x, 0);
-        mpz_set_ui(result.y, 0);
-    }
-    else
-    {
-        mpz_set(result.x, point.x);
-        mpz_set(result.y, point.y);
-    }
+    char *out;
+    out = mpz_get_str(NULL, 16, point.x);
+    printf("%s\n", out);
+    out = mpz_get_str(NULL, 16, point.y);
+    printf("%s\n\n", out);
 
-    mpz_div_ui(k, num, 2);
-    pntcpy(point, pnt);
+    mpz_set(pnt.x, point.x);
+    mpz_set(pnt.y, point.y);
 
-    while (mpz_cmp_ui(k, 0) > 0)
+    
+
+    while(mpz_cmp_ui(k, 0) > 0)
     {
-        pntSum(ec, pnt, pnt, pnt);
-        mpz_set_ui(tmp, 1);
-        mpz_and(tmp, k, tmp);
-        if (mpz_cmp_ui(tmp, 0) != 0)
+        mpz_mod_ui(tmp, k, 2);
+        if (mpz_cmp_ui(tmp, 1) == 0)        
             pntSum(ec, pnt, result, result);
-
+        pntSum(ec, pnt, pnt, pnt);
         mpz_div_ui(k, k, 2);
+        
+        // char *out = mpz_get_str(NULL, 16, pnt.x);
+        // printf("%s\n", out);
+        // out = mpz_get_str(NULL, 16, pnt.y);
+        // printf("%s\n", out);
     }
 
-    mpz_clears(tmp, k, pnt.x, pnt.y, NULL);
+    mpz_clear(tmp);
 }
 
 void ecc_mpz_to_cstr(mpz_t a, byte** b, unsigned int &len)
