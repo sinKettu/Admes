@@ -56,6 +56,9 @@ void EPNG_init(int n, mpz_t seed)
     mpz_mod(seed, seed, epng_ec->p);
     mpz_init_set(_seed, seed);
 
+    mpz_out_str(stdout, 16, epng_ec->p); printf("\n");
+    mpz_out_str(stdout, 16, _seed); printf("\n");
+
     epng_inited = true;
 }
 
@@ -65,11 +68,13 @@ void EPNG_delete()
                epng_ec->q, epng_ec->G.x, epng_ec->G.y, 
                _seed, NULL);
 
+
+    ec_deinit(epng_ec);
     epng_inited = false;
 }
 
 // Getting one PRN according to initializing
-bool EPNG_get(mpz_t result)
+bool EPNG_get(mpz_t &result)
 {
     if (epng_inited)
     {
@@ -80,7 +85,10 @@ bool EPNG_get(mpz_t result)
         pntMul(epng_ec, epng_ec->G, _seed, next);
 		
 		mpz_xor(result, next.x, next.y);
-		mpz_set(_seed, next.y);
+		mpz_add_ui(_seed, next.y, 1);
+
+        mpz_out_str(stdout, 16, _seed); printf("\n");
+        mpz_out_str(stdout, 16, result); printf("\n");
 
         mpz_clear(next.x);
         mpz_clear(next.y);

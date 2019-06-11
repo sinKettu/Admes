@@ -56,6 +56,7 @@ int _encrypt(EllipticCurve *ec, Point pk, unsigned char *message, unsigned int m
     mpz_init(tmp_point.x);
     mpz_init(tmp_point.y);
     pntMul(ec, ec->G, tmp, tmp_point);
+
     ecc_mpz_to_cstr(tmp_point.x, &data->side_x, data->s_len_x);
     ecc_mpz_to_cstr(tmp_point.y, &data->side_y, data->s_len_y);
 
@@ -63,6 +64,7 @@ int _encrypt(EllipticCurve *ec, Point pk, unsigned char *message, unsigned int m
 
     pntMul(ec, pk, tmp, tmp_point);
     pntSum(ec, mes, tmp_point, tmp_point);
+    
     ecc_mpz_to_cstr(tmp_point.x, &data->general_x, data->g_len_x);
     ecc_mpz_to_cstr(tmp_point.y, &data->general_y, data->g_len_y);
 
@@ -110,12 +112,6 @@ QByteArray ECC_Encrypt(EllipticCurve *ec, Point pk, QByteArray message)
 
         result.append(reinterpret_cast<char *>(&(data->s_len_y)), 4);
         result.append(reinterpret_cast<char *>(data->side_y), data->s_len_y);
-
-        printf("[%u\n%u\n%u\n%u]\n", data->g_len_x, data->g_len_y, data->s_len_x, data->s_len_y);
-        printf("%s\n", data->general_x);
-        printf("%s\n", data->general_y);
-        printf("%s\n", data->side_x);
-        printf("%s\n", data->side_y);
 
         delete[] data->general_x;
         delete[] data->general_y;
@@ -268,12 +264,6 @@ QByteArray ECC_Decrypt(EllipticCurve *ec, mpz_t prk, QByteArray encrypted)
         memcpy(data->side_y, enc + offset, data->s_len_y);
         offset += data->s_len_y;
 
-        printf("[%u\n%u\n%u\n%u]\n", data->g_len_x, data->g_len_y, data->s_len_x, data->s_len_y);
-        printf("%s\n", data->general_x);
-        printf("%s\n", data->general_y);
-        printf("%s\n", data->side_x);
-        printf("%s\n", data->side_y);
-
         unsigned char *mes;
         unsigned int len;
         _decrypt(ec, prk, data, &mes, len);
@@ -414,7 +404,13 @@ void ecc_test()
     {
         *reinterpret_cast<unsigned short *>(mes + 45) = appendix;
         if (!_encrypt(ec, kc->PublicKey, mes, l1, data))
+        {
             appendix++;
+            delete[] data->side_x;
+            delete[] data->side_y;
+            delete[] data->general_x;
+            delete[] data->general_y;
+        }
         else
             break;
     }

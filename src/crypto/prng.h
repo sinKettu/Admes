@@ -12,7 +12,7 @@
 //
 void EPNG_init(int, mpz_t);
 bool EPNG_inited();
-bool EPNG_get(mpz_t);
+bool EPNG_get(mpz_t &);
 void EPNG_delete();
 //
 // random number based on time of typing
