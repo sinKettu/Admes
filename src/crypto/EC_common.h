@@ -49,7 +49,11 @@ struct ECC_signature
 
 EllipticCurve *ec_init(unsigned char num);
 
+Point pnt_init();
+
 void ec_deinit(EllipticCurve *ec);
+
+void pnt_deinit(Point pnt);
 
 void pntcpy(Point src, Point &dst);
 

@@ -174,7 +174,6 @@ void pntSum(EllipticCurve *ec, Point left, Point right, Point &result)
 {
     if (! mpz_cmp_ui(left.x, 0) && ! mpz_cmp_ui(left.y, 0))
     {
-
         mpz_set(result.x, right.x);
         mpz_set(result.y, right.y);
         return;
@@ -182,13 +181,6 @@ void pntSum(EllipticCurve *ec, Point left, Point right, Point &result)
     }
     if (! mpz_cmp_ui(right.x, 0) && ! mpz_cmp_ui(right.y, 0))
     {
-
-        char *out;
-        out = mpz_get_str(NULL, 16, left.x);
-        printf("%s\n", out);
-        out = mpz_get_str(NULL, 16, left.y);
-        printf("%s\n\n", out);
-
         mpz_set(result.x, left.x);
         mpz_set(result.y, left.y);
         return;
@@ -207,41 +199,26 @@ void pntSum(EllipticCurve *ec, Point left, Point right, Point &result)
         mpz_t tmp, s;
         mpz_init(tmp);
         mpz_init(s);
-        char *out;
 
         // Lambda
         mpz_sub(tmp, p2.x, p1.x);
-            out = mpz_get_str(NULL, 16, tmp);
         mpz_mod(tmp, tmp, ec->p);
         mpz_invert(s, tmp, ec->p);
-            out = mpz_get_str(NULL, 16, s);
         mpz_sub(tmp, p2.y, p1.y);
-            out = mpz_get_str(NULL, 16, tmp);
         mpz_mul(tmp, tmp, s);
-            out = mpz_get_str(NULL, 16, tmp);
         mpz_mod(tmp, tmp, ec->p);
-            out = mpz_get_str(NULL, 16, tmp);
 
         // X result
         mpz_mul(result.x, tmp, tmp);
-            out = mpz_get_str(NULL, 16, result.x);
         mpz_sub(result.x, result.x, p1.x);
-            out = mpz_get_str(NULL, 16, result.x);
         mpz_sub(result.x, result.x, p2.x);
-            out = mpz_get_str(NULL, 16, result.x);
         mpz_mod(result.x, result.x, ec->p);
-            out = mpz_get_str(NULL, 16, result.x);
 
         // Y result
-        // mpz_invert(s, p1.y, ec->p);
         mpz_sub(result.y, p2.x, result.x);
-            out = mpz_get_str(NULL, 16, result.y);
         mpz_mul(result.y, result.y, tmp);
-            out = mpz_get_str(NULL, 16, result.y);
         mpz_sub(result.y, result.y, p2.y);
-            out = mpz_get_str(NULL, 16, result.y);
         mpz_mod(result.y, result.y, ec->p);
-            out = mpz_get_str(NULL, 16, result.y);
 
         mpz_clears(tmp, s, NULL);
     }
@@ -251,44 +228,30 @@ void pntSum(EllipticCurve *ec, Point left, Point right, Point &result)
         mpz_init(tmp);
         mpz_init(s);
 
-        char *out;
         mpz_mul_ui(s, p1.y, 2);
         mpz_invert(s, s, ec->p);
         //
         // Lambda
         //
         mpz_mul_ui(tmp, p1.x, 3);
-            out = mpz_get_str(NULL, 16, tmp);
         mpz_mul(tmp, tmp, p1.x);
-            out = mpz_get_str(NULL, 16, tmp);
         mpz_add(tmp, tmp, ec->a);
-            out = mpz_get_str(NULL, 16, tmp);
         mpz_mul(tmp, tmp, s);
-            out = mpz_get_str(NULL, 16, tmp);
         mpz_mod(tmp, tmp, ec->p);
-            out = mpz_get_str(NULL, 16, tmp);
         //
         // X result
         //
         mpz_mul_ui(s, p1.x, 2);
-            out = mpz_get_str(NULL, 16, s);
         mpz_mul(result.x, tmp, tmp);
-            out = mpz_get_str(NULL, 16, result.x);
         mpz_sub(result.x, result.x, s);
-            out = mpz_get_str(NULL, 16, result.x);
         mpz_mod(result.x, result.x, ec->p);
-            out = mpz_get_str(NULL, 16, result.x);
         //
         // Y result
         //
         mpz_sub(result.y, p1.x, result.x);
-            out = mpz_get_str(NULL, 16, result.y);
         mpz_mul(result.y, result.y, tmp);
-            out = mpz_get_str(NULL, 16, result.y);
-        mpz_sub(result.y, result.y, p1.y); // !
-            out = mpz_get_str(NULL, 16, result.y);
+        mpz_sub(result.y, result.y, p1.y);
         mpz_mod(result.y, result.y, ec->p);
-            out = mpz_get_str(NULL, 16, result.y);
         //
         mpz_clears(tmp, s, NULL);
     }
@@ -308,24 +271,14 @@ void pntSum(EllipticCurve *ec, Point left, Point right, Point &result)
 
 void pntMul(EllipticCurve *ec, Point point, mpz_t num, Point &result)
 {
-    mpz_set_ui(result.x, 0);
-    mpz_set_ui(result.y, 0);
     Point pnt;
     mpz_t tmp, k;
     mpz_inits(tmp, k, pnt.x, pnt.y, NULL);
     mpz_set(k, num);
-    //pntcpy(point, pnt);
+    pntcpy(point, pnt);
 
-    char *out;
-    out = mpz_get_str(NULL, 16, point.x);
-    printf("%s\n", out);
-    out = mpz_get_str(NULL, 16, point.y);
-    printf("%s\n\n", out);
-
-    mpz_set(pnt.x, point.x);
-    mpz_set(pnt.y, point.y);
-
-    
+    mpz_set_ui(result.x, 0);
+    mpz_set_ui(result.y, 0);
 
     while(mpz_cmp_ui(k, 0) > 0)
     {
@@ -334,11 +287,6 @@ void pntMul(EllipticCurve *ec, Point point, mpz_t num, Point &result)
             pntSum(ec, pnt, result, result);
         pntSum(ec, pnt, pnt, pnt);
         mpz_div_ui(k, k, 2);
-        
-        // char *out = mpz_get_str(NULL, 16, pnt.x);
-        // printf("%s\n", out);
-        // out = mpz_get_str(NULL, 16, pnt.y);
-        // printf("%s\n", out);
     }
 
     mpz_clear(tmp);
@@ -383,4 +331,18 @@ void ecc_cstr_to_mpz(unsigned char* a, unsigned int len, mpz_t &b)
     }
 
     mpz_clear(tmp);
+}
+
+Point pnt_init()
+{
+    Point pnt;
+    mpz_init(pnt.x);
+    mpz_init(pnt.y);
+
+    return pnt;
+}
+
+void pnt_deinit(Point pnt)
+{
+    mpz_clears(pnt.x, pnt.y, NULL);
 }
