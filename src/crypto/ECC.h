@@ -7,6 +7,9 @@
 // Генерация публичного и закрытого ключей
 Keychain *ecc_keygen(EllipticCurve *ec);
 
+// Удаление пары ключей
+void delete_keys(Keychain *kc);
+
 // Шифрование сообщения
 QByteArray ECC_Encrypt(EllipticCurve *ec, Point pk, QByteArray message);
 

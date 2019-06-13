@@ -18,6 +18,13 @@ Keychain *ecc_keygen(EllipticCurve *ec)
     return kc;
 }
 
+void delete_keys(Keychain *kc)
+{
+    pnt_deinit(kc->PublicKey);
+    mpz_clear(kc->PrivateKey);
+    delete kc;
+}
+
 int _encrypt(EllipticCurve *ec, Point pk, unsigned char *message, unsigned int m_len, ECC_encrypted_data *data)
 {
     if (! EPNG_inited())
@@ -394,34 +401,7 @@ void ecc_test()
     EllipticCurve *ec = ec_init(4);
     Keychain *kc = ecc_keygen(ec);
 
-    unsigned char *mes = new unsigned char[7];
-    memcpy(mes, "hello", 5);
-    unsigned short appendix = 0;
-    unsigned int l1 = 7;
-    ECC_encrypted_data *data = new ECC_encrypted_data();
-    while (true)
-    {
-        *reinterpret_cast<unsigned short *>(mes + 5) = appendix;
-        if (!_encrypt(ec, kc->PublicKey, mes, l1, data))
-        {
-            appendix++;
-            delete[] data->side_x;
-            delete[] data->side_y;
-            delete[] data->general_x;
-            delete[] data->general_y;
-        }
-        else
-            break;
-    }
-    
-    unsigned char* dec;
-    unsigned int l2;
-    _decrypt(ec, kc->PrivateKey, data, &dec, l2);
-
-    printf("%s\n", dec);
-    printf("%u\n", l2);
-
-    /*QByteArray mes = QByteArray("HelloWorldHelloWorldHelloWorldHelloWorldHelloWorld");
+    QByteArray mes = QByteArray("HelloWorldHelloWorldHelloWorldHelloWorldHelloWorld");
     QByteArray res;
     res = ECC_Encrypt(ec, kc->PublicKey, mes);
 
@@ -431,7 +411,7 @@ void ecc_test()
 
     res = ECC_Decrypt(ec, kc->PrivateKey, res);
 
-    printf("%s\n", res.data());*/
+    printf("%s\n", res.data());
 
     EPNG_delete();
     ec_deinit(ec);
