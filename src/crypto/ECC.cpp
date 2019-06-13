@@ -436,19 +436,5 @@ int ECC_Check(EllipticCurve *ec, Point puk, QByteArray data, QByteArray signatur
 
 void ecc_test()
 {
-    mpz_t tmp;
-    mpz_init_set_str(tmp, "2346345634123453245345", 10);
-    EPNG_init(0, tmp);
-    EllipticCurve *ec = ec_init(4);
-    Keychain *kc = ecc_keygen(ec);
-
-    QByteArray hash = QByteArray("1234567890");
-    QByteArray sign;
-    sign = ECC_Sign(ec, kc->PrivateKey, hash);
-    hash.append('0');
-    int a = ECC_Check(ec, kc->PublicKey, hash, sign);
-
-    EPNG_delete();
-    ec_deinit(ec);
-    delete_keys(kc);
+    // Function for testing
 }

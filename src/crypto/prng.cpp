@@ -41,6 +41,8 @@ void typing_random(mpz_t result)
     }
 
     std::cout << std::endl << std::endl;
+
+    mpz_clear(tmp);
 }
 
 // Initializing of EC

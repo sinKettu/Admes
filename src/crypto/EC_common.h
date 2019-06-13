@@ -1,5 +1,12 @@
 #include <mpir.h>
 
+#define SECP128R1 0
+#define SECP128R2 1
+#define SECP256K1 2
+#define SECP256R1 3
+#define SECP384R1 4
+#define SECP521R1 5
+
 // Elliptic curve point
 struct Point
 {
