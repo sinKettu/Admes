@@ -9,8 +9,7 @@ Keychain *ecc_keygen(EllipticCurve *ec)
 
     Keychain *kc = new Keychain(); 
     mpz_init(kc->PrivateKey);
-    mpz_init(kc->PublicKey.x);
-    mpz_init(kc->PublicKey.y);
+    kc->PublicKey = pnt_init();
 
     EPNG_get(kc->PrivateKey);
     mpz_mod(kc->PrivateKey, kc->PrivateKey, ec->p);
@@ -387,217 +386,22 @@ int ECC_Check(EllipticCurve *ec, Point pk, ECC_signature *signature, unsigned ch
     return result;
 }
 
-// void pntSum1(EllipticCurve *ec, Point *left, Point *right, Point *result)
-// {
-//     if (! mpz_cmp_ui(left->x, 0) && ! mpz_cmp_ui(left->y, 0))
-//     {
-
-//         mpz_set(result->x, right->x);
-//         mpz_set(result->y, right->y);
-//         return;
-
-//     }
-//     if (! mpz_cmp_ui(right->x, 0) && ! mpz_cmp_ui(right->y, 0))
-//     {
-
-//         char *out;
-//         out = mpz_get_str(NULL, 16, left->x);
-//         printf("%s\n", out);
-//         out = mpz_get_str(NULL, 16, left->y);
-//         printf("%s\n\n", out);
-
-//         mpz_set(result->x, left->x);
-//         mpz_set(result->y, left->y);
-//         return;
-//     }
-
-//     Point *p1 = pnt_init(), *p2 = pnt_init();
-//     pntcpy(*left, *p1);
-//     pntcpy(*right, *p2);
-
-//     if (mpz_cmp(p1->x, p2->x) != 0)
-//     {
-//         mpz_t tmp, s;
-//         mpz_init(tmp);
-//         mpz_init(s);
-//         char *out;
-
-//         // Lambda
-//         mpz_sub(tmp, p2->x, p1->x);
-//             out = mpz_get_str(NULL, 16, tmp);
-//         mpz_mod(tmp, tmp, ec->p);
-//         mpz_invert(s, tmp, ec->p);
-//             out = mpz_get_str(NULL, 16, s);
-//         mpz_sub(tmp, p2->y, p1->y);
-//             out = mpz_get_str(NULL, 16, tmp);
-//         mpz_mul(tmp, tmp, s);
-//             out = mpz_get_str(NULL, 16, tmp);
-//         mpz_mod(tmp, tmp, ec->p);
-//             out = mpz_get_str(NULL, 16, tmp);
-
-//         // X result
-//         mpz_mul(result->x, tmp, tmp);
-//             out = mpz_get_str(NULL, 16, result->x);
-//         mpz_sub(result->x, result->x, p1->x);
-//             out = mpz_get_str(NULL, 16, result->x);
-//         mpz_sub(result->x, result->x, p2->x);
-//             out = mpz_get_str(NULL, 16, result->x);
-//         mpz_mod(result->x, result->x, ec->p);
-//             out = mpz_get_str(NULL, 16, result->x);
-
-//         // Y result
-//         // mpz_invert(s, p1.y, ec->p);
-//         mpz_sub(result->y, p2->x, result->x);
-//             out = mpz_get_str(NULL, 16, result->y);
-//         mpz_mul(result->y, result->y, tmp);
-//             out = mpz_get_str(NULL, 16, result->y);
-//         mpz_sub(result->y, result->y, p2->y);
-//             out = mpz_get_str(NULL, 16, result->y);
-//         mpz_mod(result->y, result->y, ec->p);
-//             out = mpz_get_str(NULL, 16, result->y);
-
-//         mpz_clears(tmp, s, NULL);
-//     }
-//     else if (mpz_cmp(p1->x, p2->x) == 0 && mpz_cmp(p1->y, p2->y) == 0 && mpz_cmp_ui(p1->y, 0) != 0)
-//     {
-//         mpz_t tmp, s;
-//         mpz_init(tmp);
-//         mpz_init(s);
-
-//         char *out;
-//         mpz_mul_ui(s, p1->y, 2);
-//         mpz_invert(s, s, ec->p);
-//         //
-//         // Lambda
-//         //
-//         mpz_mul_ui(tmp, p1->x, 3);
-//             out = mpz_get_str(NULL, 16, tmp);
-//         mpz_mul(tmp, tmp, p1->x);
-//             out = mpz_get_str(NULL, 16, tmp);
-//         mpz_add(tmp, tmp, ec->a);
-//             out = mpz_get_str(NULL, 16, tmp);
-//         mpz_mul(tmp, tmp, s);
-//             out = mpz_get_str(NULL, 16, tmp);
-//         mpz_mod(tmp, tmp, ec->p);
-//             out = mpz_get_str(NULL, 16, tmp);
-//         //
-//         // X result
-//         //
-//         mpz_mul_ui(s, p1->x, 2);
-//             out = mpz_get_str(NULL, 16, s);
-//         mpz_mul(result->x, tmp, tmp);
-//             out = mpz_get_str(NULL, 16, result->x);
-//         mpz_sub(result->x, result->x, s);
-//             out = mpz_get_str(NULL, 16, result->x);
-//         mpz_mod(result->x, result->x, ec->p);
-//             out = mpz_get_str(NULL, 16, result->x);
-//         //
-//         // Y result
-//         //
-//         mpz_sub(result->y, p1->x, result->x);
-//             out = mpz_get_str(NULL, 16, result->y);
-//         mpz_mul(result->y, result->y, tmp);
-//             out = mpz_get_str(NULL, 16, result->y);
-//         mpz_sub(result->y, result->y, p1->y); // !
-//             out = mpz_get_str(NULL, 16, result->y);
-//         mpz_mod(result->y, result->y, ec->p);
-//             out = mpz_get_str(NULL, 16, result->y);
-//         //
-//         mpz_clears(tmp, s, NULL);
-//     }
-//     else
-//     {
-//         mpz_sub(p2->y, ec->p, p2->y);
-//         if (!mpz_cmp(p1->x, p2->x) && !mpz_cmp(p1->y, p2->y))
-//         {
-//             mpz_set_ui(result->x, 0);
-//             mpz_set_ui(result->y, 0);
-//         }
-//         printf("!\n");
-//     }
-
-//     pnt_deinit(p1);
-//     pnt_deinit(p2);
-// }
-
-// void pntMul1(EllipticCurve *ec, Point *point, mpz_t num, Point *result)
-// {
-//     mpz_set_ui(result->x, 0);
-//     mpz_set_ui(result->y, 0);
-//     Point *pnt = pnt_init();
-//     mpz_t tmp, k;
-//     mpz_inits(tmp, k, NULL);
-//     mpz_set(k, num);
-//     //pntcpy(point, pnt);
-
-//     char *out;
-//     out = mpz_get_str(NULL, 16, point->x);
-//     printf("%s\n", out);
-//     out = mpz_get_str(NULL, 16, point->y);
-//     printf("%s\n\n", out);
-
-//     mpz_set(pnt->x, point->x);
-//     mpz_set(pnt->y, point->y);
-
-    
-
-//     while(mpz_cmp_ui(k, 0) > 0)
-//     {
-//         mpz_mod_ui(tmp, k, 2);
-//         if (mpz_cmp_ui(tmp, 1) == 0)        
-//             pntSum1(ec, pnt, result, result);
-//         pntSum1(ec, pnt, pnt, pnt);
-//         mpz_div_ui(k, k, 2);
-        
-//         // char *out = mpz_get_str(NULL, 16, pnt.x);
-//         // printf("%s\n", out);
-//         // out = mpz_get_str(NULL, 16, pnt.y);
-//         // printf("%s\n", out);
-//     }
-
-//     mpz_clear(tmp);
-// }
-
 void ecc_test()
 {
-    char* out;
     mpz_t tmp;
-    mpz_init_set_str(tmp, "2346345634123453245345", 10);
-    EPNG_init(0, tmp);
-    EllipticCurve *ec = ec_init(4);
-
-    //Point a, b, c;
-    Point a = pnt_init();
-    Point b = pnt_init();
-    Point c = pnt_init();
-    mpz_t x, y;
-    mpz_init_set_ui(x, 12);
-    mpz_init_set_ui(y, 17);
-
-    pntMul(ec, ec->G, x, a);
-    pntMul(ec, a, y, a);
-    mpz_out_str(stdout, 16, a.x); printf("\n");
-    mpz_out_str(stdout, 16, a.y); printf("\n");
-
-    pntMul(ec, ec->G, y, b);
-    pntMul(ec, b, x, b);
-    mpz_out_str(stdout, 16, b.x); printf("\n");
-    mpz_out_str(stdout, 16, b.y); printf("\n");
-
-    /*mpz_t tmp;
     mpz_init_set_str(tmp, "2346345634123453245345", 10);
     EPNG_init(0, tmp);
     EllipticCurve *ec = ec_init(4);
     Keychain *kc = ecc_keygen(ec);
 
-    unsigned char *mes = new unsigned char[47];
-    memcpy(mes, "hellowolrd12345678901234567890!@#$%^&*()!@#$%", 45);
+    unsigned char *mes = new unsigned char[7];
+    memcpy(mes, "hello", 5);
     unsigned short appendix = 0;
-    unsigned int l1 = 47;
+    unsigned int l1 = 7;
     ECC_encrypted_data *data = new ECC_encrypted_data();
     while (true)
     {
-        *reinterpret_cast<unsigned short *>(mes + 45) = appendix;
+        *reinterpret_cast<unsigned short *>(mes + 5) = appendix;
         if (!_encrypt(ec, kc->PublicKey, mes, l1, data))
         {
             appendix++;
@@ -609,14 +413,13 @@ void ecc_test()
         else
             break;
     }
-
-    //_encrypt(ec, kc->PublicKey, mes, l1, data);
+    
     unsigned char* dec;
     unsigned int l2;
     _decrypt(ec, kc->PrivateKey, data, &dec, l2);
 
     printf("%s\n", dec);
-    printf("%u\n", l2);*/
+    printf("%u\n", l2);
 
     /*QByteArray mes = QByteArray("HelloWorldHelloWorldHelloWorldHelloWorldHelloWorld");
     QByteArray res;

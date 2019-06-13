@@ -150,15 +150,12 @@ bool sqrt_modulo_p(mpz_t a, mpz_t p, mpz_t &res)
     return true;
 }
 
+// Y^2 = X^3 + a*X + b
 bool pntExpand(EllipticCurve *ec, mpz_t x, mpz_t &y)
 {
     mpz_t tmp;
     mpz_init(tmp);
-    mpz_mul(x, x, x);
-    mpz_mod(x, x, ec->p);
-    mpz_mul(tmp, x, x);
-    mpz_mul(tmp, tmp, x);
-    mpz_set(y, tmp);
+    mpz_pow_ui(y, x, 3);
 
     mpz_mul(tmp, x, ec->a);
     mpz_add(y, y, tmp);
