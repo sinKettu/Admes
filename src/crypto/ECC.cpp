@@ -93,11 +93,11 @@ QByteArray ECC_Encrypt(EllipticCurve *ec, Point pk, QByteArray message)
         QByteArray qmid = message.mid(offset, mid_len);
         unsigned short appendix = 0x0000;
         memcpy(mid, qmid.data(), mid_len);
-        *reinterpret_cast<unsigned short *>(mid + step) = appendix;
-        while (!_encrypt(ec, pk, mid, step + 2, data))
+        *reinterpret_cast<unsigned short *>(mid + mid_len) = appendix;
+        while (!_encrypt(ec, pk, mid, mid_len + 2, data))
         {
             appendix++;
-            *reinterpret_cast<unsigned short *>(mid + step) = appendix;
+            *reinterpret_cast<unsigned short *>(mid + mid_len) = appendix;
             if (!appendix)
             {
                 result.clear();
@@ -163,6 +163,88 @@ int _decrypt(EllipticCurve *ec, mpz_t prk, ECC_encrypted_data *data, unsigned ch
     return 1;
 }
 
+int byte_array_to_enc_data(char *array, int len, ECC_encrypted_data *data)
+{
+    // set general_x
+    int offset = 0;
+    data->g_len_x = *reinterpret_cast<unsigned int *>(array + offset);
+    offset += 4;
+    if (offset >= len)
+    {
+        return 0;
+    }
+    data->general_x = new unsigned char[data->g_len_x];
+    memcpy(data->general_x, array + offset, data->g_len_x);
+    offset += data->g_len_x;
+    if (offset >= len)
+    {
+        delete[] data->general_x;
+        return 0;
+    }
+
+    // set general_y
+    data->g_len_y = *reinterpret_cast<unsigned int *>(array + offset);
+    offset += 4;
+    if (offset >= len)
+    {
+        delete[] data->general_x;
+        return 0;
+    }
+    data->general_y = new unsigned char[data->g_len_y];
+    memcpy(data->general_y, array + offset, data->g_len_y);
+    offset += data->g_len_y;
+    if (offset >= len)
+    {
+        delete[] data->general_x;
+        delete[] data->general_y;
+        return 0;
+    }
+
+    // set side_x
+    data->s_len_x = *reinterpret_cast<unsigned int *>(array + offset);
+    offset += 4;
+    if (offset >= len)
+    {
+        delete[] data->general_x;
+        delete[] data->general_y;
+        return 0;
+    }
+    data->side_x = new unsigned char[data->s_len_x];
+    memcpy(data->side_x, array + offset, data->s_len_x);
+    offset += data->s_len_x;
+    if (offset >= len)
+    {
+        delete[] data->side_x;
+        delete[] data->general_x;
+        delete[] data->general_y;
+        return 0;
+    }
+
+    // set side_y
+    data->s_len_y = *reinterpret_cast<unsigned int *>(array + offset);
+    offset += 4;
+    if (offset >= len)
+    {
+        delete[] data->side_x;
+        delete[] data->general_x;
+        delete[] data->general_y;
+        return 0;
+    }
+    data->side_y = new unsigned char[data->s_len_y];
+    memcpy(data->side_y, array + offset, data->s_len_y);
+    offset += data->s_len_y;
+    if (offset > len)
+    {
+        delete[] data->side_x;
+        delete[] data->side_y;
+        delete[] data->general_x;
+        delete[] data->general_y;
+        return 0;
+    }
+
+    return offset;
+}
+
 QByteArray ECC_Decrypt(EllipticCurve *ec, mpz_t prk, QByteArray encrypted)
 {
     QByteArray result;
@@ -172,104 +254,15 @@ QByteArray ECC_Decrypt(EllipticCurve *ec, mpz_t prk, QByteArray encrypted)
     ECC_encrypted_data *data = new ECC_encrypted_data();
     while (offset < encrypted.length())
     {
-        // set general_x
-        data->g_len_x = *reinterpret_cast<unsigned int *>(enc + offset);
-        offset += 4;
-        if (offset >= encrypted.length())
+        int local_offset = byte_array_to_enc_data(enc + offset, encrypted.length() - offset, data);
+        if (!local_offset)
         {
-            delete[] data->side_x;
-            delete[] data->side_y;
-            delete[] data->general_x;
-            delete[] data->general_y;
-            delete data;
-            result.clear();
-            return result;
-        }
-        data->general_x = new unsigned char[data->g_len_x];
-        memcpy(data->general_x, enc + offset, data->g_len_x);
-        offset += data->g_len_x;
-        if (offset >= encrypted.length())
-        {
-            delete[] data->side_x;
-            delete[] data->side_y;
-            delete[] data->general_x;
-            delete[] data->general_y;
             delete data;
             result.clear();
             return result;
         }
 
-        // set general_y
-        data->g_len_y = *reinterpret_cast<unsigned int *>(enc + offset);
-        offset += 4;
-        if (offset >= encrypted.length())
-        {
-            delete[] data->side_x;
-            delete[] data->side_y;
-            delete[] data->general_x;
-            delete[] data->general_y;
-            delete data;
-            result.clear();
-            return result;
-        }
-        data->general_y = new unsigned char[data->g_len_y];
-        memcpy(data->general_y, enc + offset, data->g_len_y);
-        offset += data->g_len_y;
-        if (offset >= encrypted.length())
-        {
-            delete[] data->side_x;
-            delete[] data->side_y;
-            delete[] data->general_x;
-            delete[] data->general_y;
-            delete data;
-            result.clear();
-            return result;
-        }
-
-        // set side_x
-        data->s_len_x = *reinterpret_cast<unsigned int *>(enc + offset);
-        offset += 4;
-        if (offset >= encrypted.length())
-        {
-            delete[] data->side_x;
-            delete[] data->side_y;
-            delete[] data->general_x;
-            delete[] data->general_y;
-            delete data;
-            result.clear();
-            return result;
-        }
-        data->side_x = new unsigned char[data->s_len_x];
-        memcpy(data->side_x, enc + offset, data->s_len_x);
-        offset += data->s_len_x;
-        if (offset >= encrypted.length())
-        {
-            delete[] data->side_x;
-            delete[] data->side_y;
-            delete[] data->general_x;
-            delete[] data->general_y;
-            delete data;
-            result.clear();
-            return result;
-        }
-
-        // set side_y
-        data->s_len_y = *reinterpret_cast<unsigned int *>(enc + offset);
-        offset += 4;
-        if (offset >= encrypted.length())
-        {
-            delete[] data->side_x;
-            delete[] data->side_y;
-            delete[] data->general_x;
-            delete[] data->general_y;
-            delete data;
-            result.clear();
-            return result;
-        }
-        data->side_y = new unsigned char[data->s_len_y];
-        memcpy(data->side_y, enc + offset, data->s_len_y);
-        offset += data->s_len_y;
-
+        offset += local_offset;
         unsigned char *mes;
         unsigned int len;
         _decrypt(ec, prk, data, &mes, len);
@@ -401,18 +394,16 @@ void ecc_test()
     EllipticCurve *ec = ec_init(4);
     Keychain *kc = ecc_keygen(ec);
 
-    QByteArray mes = QByteArray("HelloWorldHelloWorldHelloWorldHelloWorldHelloWorld");
+    QByteArray mes = QByteArray("HelloWorld!HelloWorld!HelloWorld!HelloWorld!HelloWorld!HelloWorld!HelloWorld!HelloWorld!HelloWorld!");
     QByteArray res;
     res = ECC_Encrypt(ec, kc->PublicKey, mes);
-
-    int a = res.length();
-    char *b = res.data();
     printf("%s\n", res.data());
 
     res = ECC_Decrypt(ec, kc->PrivateKey, res);
-
     printf("%s\n", res.data());
+    printf("%u\n", res.length());
 
     EPNG_delete();
     ec_deinit(ec);
+    delete_keys(kc);
 }
