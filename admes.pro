@@ -41,7 +41,7 @@ HEADERS += \
     src/connection.h \
     src/chat.h \
     src/common.h \
-	src/crypto/AES.h \
-	src/crypto/ECC.h \
-	src/crypto/prng.h \
-    src/crypto/EC_common.h
+	    src/crypto/AES.h \
+	    src/crypto/ECC.h \
+	    src/crypto/prng.h \
+        src/crypto/EC_common.h
