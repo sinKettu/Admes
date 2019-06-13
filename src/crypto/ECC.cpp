@@ -279,7 +279,7 @@ QByteArray ECC_Decrypt(EllipticCurve *ec, mpz_t prk, QByteArray encrypted)
     return result;
 }
 
-int ECC_Sign(EllipticCurve *ec, mpz_t prk, unsigned char *message, unsigned int m_len, ECC_signature *signature)
+int _sign(EllipticCurve *ec, mpz_t prk, unsigned char *message, unsigned int m_len, ECC_signature *signature)
 {
     if (!EPNG_inited())
     {
@@ -338,7 +338,25 @@ int ECC_Sign(EllipticCurve *ec, mpz_t prk, unsigned char *message, unsigned int 
     return 1;
 }
 
-int ECC_Check(EllipticCurve *ec, Point pk, ECC_signature *signature, unsigned char* hash, int h_len)
+QByteArray ECC_Sign(EllipticCurve *ec, mpz_t prk, QByteArray data)
+{
+    if (data.length() / 8 >= ec->p_len)
+        return QByteArray();
+
+    ECC_signature *s = new ECC_signature();
+    QByteArray sign;
+    unsigned char *d = reinterpret_cast<unsigned char *>(data.data());
+    _sign(ec, prk, d, data.length(), s);
+
+    sign.append(reinterpret_cast<char *>(&(s->r_len)), 4);
+    sign.append(reinterpret_cast<char *>(s->r), s->r_len);
+    sign.append(reinterpret_cast<char *>(&(s->s_len)), 4);
+    sign.append(reinterpret_cast<char *>(s->s), s->s_len);
+
+    return sign;
+}
+
+int _check(EllipticCurve *ec, Point pk, ECC_signature *signature, unsigned char* hash, int h_len)
 {
     // Шаг 1
 
@@ -386,6 +404,36 @@ int ECC_Check(EllipticCurve *ec, Point pk, ECC_signature *signature, unsigned ch
     return result;
 }
 
+int ECC_Check(EllipticCurve *ec, Point puk, QByteArray data, QByteArray signature)
+{
+    if (data.length() / 8 >= ec->p_len)
+        return -1;
+
+    unsigned char *tmp = reinterpret_cast<unsigned char *>(signature.data());
+    ECC_signature *s = new ECC_signature();
+    
+    s->r_len = *reinterpret_cast<unsigned int *>(tmp);
+    if (4 + s->r_len >= signature.length())
+    {
+        delete s;
+        return -1;
+    }
+    s->r = new unsigned char[s->r_len];
+    memcpy(s->r, tmp + 4, s->r_len);
+
+    s->s_len = *reinterpret_cast<unsigned int*>(tmp + 4 + s->r_len);
+    if (8 + s->r_len + s->s_len > signature.length())
+    {
+        delete[] s->r;
+        delete s;
+        return -1;
+    }
+    s->s = new unsigned char[s->s_len];
+    memcpy(s->s, tmp + 4 + s->r_len + 4, s->s_len);
+
+    return _check(ec, puk, s, reinterpret_cast<unsigned char *>(data.data()), data.length());
+}
+
 void ecc_test()
 {
     mpz_t tmp;
@@ -394,14 +442,11 @@ void ecc_test()
     EllipticCurve *ec = ec_init(4);
     Keychain *kc = ecc_keygen(ec);
 
-    QByteArray mes = QByteArray("HelloWorld!HelloWorld!HelloWorld!HelloWorld!HelloWorld!HelloWorld!HelloWorld!HelloWorld!HelloWorld!");
-    QByteArray res;
-    res = ECC_Encrypt(ec, kc->PublicKey, mes);
-    printf("%s\n", res.data());
-
-    res = ECC_Decrypt(ec, kc->PrivateKey, res);
-    printf("%s\n", res.data());
-    printf("%u\n", res.length());
+    QByteArray hash = QByteArray("1234567890");
+    QByteArray sign;
+    sign = ECC_Sign(ec, kc->PrivateKey, hash);
+    hash.append('0');
+    int a = ECC_Check(ec, kc->PublicKey, hash, sign);
 
     EPNG_delete();
     ec_deinit(ec);
