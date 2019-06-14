@@ -1,4 +1,5 @@
 #include <mpir.h>
+#include <QByteArray>
 
 #define SECP128R1 0
 #define SECP128R2 1
@@ -73,3 +74,7 @@ void pntMul(EllipticCurve *ec, Point pnt, mpz_t k, Point &result);
 void ecc_cstr_to_mpz(unsigned char* a, unsigned int len, mpz_t &b);
 
 void ecc_mpz_to_cstr(mpz_t a, unsigned char** b, unsigned int &len);
+
+QByteArray ecc_keys_to_qba(Keychain *kc);
+
+Keychain *qba_to_ecc_keys(QByteArray buffer);

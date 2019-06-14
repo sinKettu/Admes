@@ -343,3 +343,100 @@ void pnt_deinit(Point pnt)
 {
     mpz_clears(pnt.x, pnt.y, NULL);
 }
+
+QByteArray ecc_keys_to_qba(Keychain *kc)
+{
+    unsigned int l;
+    unsigned char *buf;
+    QByteArray result;
+
+    ecc_mpz_to_cstr(kc->PrivateKey, &buf, l);
+    result.append(reinterpret_cast<char *>(&l), 4);
+    result.append(reinterpret_cast<char *>(buf), l);
+    delete[] buf;
+
+    ecc_mpz_to_cstr(kc->PublicKey.x, &buf, l);
+    result.append(reinterpret_cast<char *>(&l), 4);
+    result.append(reinterpret_cast<char *>(buf), l);
+    delete[] buf;
+
+    ecc_mpz_to_cstr(kc->PublicKey.y, &buf, l);
+    result.append(reinterpret_cast<char *>(&l), 4);
+    result.append(reinterpret_cast<char *>(buf), l);
+    delete[] buf;
+
+    return result;
+}
+
+Keychain *qba_to_ecc_keys(QByteArray buffer)
+{
+    if (buffer.length() < 4)
+        return nullptr;
+    
+    unsigned int l;
+    unsigned int offset = 4;
+    Keychain *kc = new Keychain();
+    mpz_init(kc->PrivateKey);
+    kc->PublicKey = pnt_init();
+
+    l = *reinterpret_cast<unsigned int*>(buffer.data());
+    if (offset + l < buffer.length())
+    {
+        ecc_cstr_to_mpz(reinterpret_cast<unsigned char*>(buffer.data()) + offset, l, kc->PrivateKey);
+        offset += l;
+    }
+    else
+    {
+        pnt_deinit(kc->PublicKey);
+        mpz_clear(kc->PrivateKey);
+        delete kc;
+        return nullptr;
+    }
+
+    if (offset + 4 < buffer.length())
+    {
+        l = *reinterpret_cast<unsigned int*>(buffer.data() + offset);
+        offset += 4;
+    }
+    else
+    {
+        pnt_deinit(kc->PublicKey);
+        mpz_clear(kc->PrivateKey);
+        delete kc;
+        return nullptr;
+    }
+    
+    if (offset + l < buffer.length())
+    {
+        ecc_cstr_to_mpz(reinterpret_cast<unsigned char*>(buffer.data()) + offset, l, kc->PublicKey.x);
+        offset += l;
+    }
+    else
+    {
+        pnt_deinit(kc->PublicKey);
+        mpz_clear(kc->PrivateKey);
+        delete kc;
+        return nullptr;
+    }
+
+    if (offset + 4 < buffer.length())
+    {
+        l = *reinterpret_cast<unsigned int*>(buffer.data() + offset);
+        offset += 4;
+    }
+    else
+    {
+        pnt_deinit(kc->PublicKey);
+        mpz_clear(kc->PrivateKey);
+        delete kc;
+        return nullptr;
+    }
+
+    if (offset + l == buffer.length())
+    {
+        ecc_cstr_to_mpz(reinterpret_cast<unsigned char*>(buffer.data()) + offset, l, kc->PublicKey.y);
+        return kc;
+    }
+    else
+        return nullptr;
+}
