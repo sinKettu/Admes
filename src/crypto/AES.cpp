@@ -407,48 +407,44 @@ void _invCipher(byte* enc, byte nr, byte nk)
     delete[] result;
 }
 
-bool AES_ECB_Encrypt(byte* input_buffer, uint32_t ib_len, 
-                     byte** output_buffer, uint32_t &ob_len,
-                     byte* key, uint32_t k_len)
+QByteArray AES_ECB_Encrypt(QByteArray buffer, char *key, unsigned int key_len)
 {
-    uint32_t remainder = ib_len & 0xf;
-    ob_len = remainder ? ib_len + 16 - remainder : ib_len;
-    *output_buffer = new byte[ob_len];
-    
-    memcpy(*output_buffer, input_buffer, ib_len);
-    if (remainder)
-    {
-        *(*output_buffer + ib_len) = 0x00;
-        memset(*output_buffer + ib_len + 1, 0x01, 16 - remainder - 1);
-    }
-    
     byte nk, nr;
-    if (k_len == 16)
+    if (key_len == 16)
     {
         nk = 4;
         nr = 10;
     }
-    else if (k_len == 24)
+    else if (key_len == 24)
     {
         nk = 6;
         nr = 12;
     }
-    else if (k_len == 32)
+    else if (key_len == 32)
     {
         nk = 8;
         nr = 14;
     }
-    else 
-        return false;
+    else
+        return QByteArray();
     
+    if (buffer.isEmpty())
+        return QByteArray();
+
+    unsigned int res_len = ((static_cast<unsigned int>(buffer.length()) / 16) + 1) * 16;
+    unsigned char *char_res = new unsigned char[res_len];
+    memcpy(char_res, buffer.data(), buffer.length());
+    char_res[buffer.length()] = 1;
+    memset(char_res + buffer.length() + 1, 0x00, res_len - (buffer.length() + 1));
+
     roundKeys = new byte*[4 * (nr + 1)];
     for (byte i = 0; i < 4 * (nr + 1); i++)
         roundKeys[i] = new byte[4];
-    KeyExpansion(key, 4, nr, nk, roundKeys);
+    KeyExpansion(reinterpret_cast<unsigned char*>(key), 4, nr, nk, roundKeys);
 
-    for (uint32_t offset = 0; offset < ob_len; offset += 16)
-        _cipher(*output_buffer + offset, nr, nk);
-    
+    for (uint32_t offset = 0; offset < res_len; offset += 16)
+        _cipher(char_res + offset, nr, nk);
+
     for (byte i = 0; i < 4 * (nr + 1); i++)
     {
         // clear
@@ -456,8 +452,10 @@ bool AES_ECB_Encrypt(byte* input_buffer, uint32_t ib_len,
         delete[] roundKeys[i];
     }
 
+    QByteArray result = QByteArray(reinterpret_cast<char*>(char_res), res_len);
+    delete[] char_res;
     delete[] roundKeys;
-    return true;
+    return result;
 }
 
 bool AES_ECB_Decrypt(byte *input_buffer, uint32_t ib_len,
