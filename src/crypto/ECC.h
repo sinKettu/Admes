@@ -1,7 +1,6 @@
 #ifndef OCCULUS_ECC_H
 #define OCCULUS_ECC_H
 
-#include <QByteArray>
 #include "prng.h"
 
 // Генерация публичного и закрытого ключей
