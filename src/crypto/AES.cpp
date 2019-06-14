@@ -575,56 +575,45 @@ QByteArray AES_CBC_Encrypt(QByteArray buffer, char *key, unsigned int key_len, u
     return result;
 }
 
-bool AES_CBC_Decrypt(byte *input_buffer, uint32_t ib_len,
-                     byte **output_buffer, uint32_t &ob_len,
-                     byte *key, uint32_t k_len,
-                     byte *iv)
+QByteArray AES_CBC_Decrypt(QByteArray encrypted, char *key, unsigned int key_len, unsigned char *iv)
 {
-    byte *tmp_buffer = new byte[ib_len];
-    memcpy(tmp_buffer, input_buffer, ib_len);
-
     byte nk, nr;
-    if (k_len == 16)
+    if (key_len == 16)
     {
         nk = 4;
         nr = 10;
     }
-    else if (k_len == 24)
+    else if (key_len == 24)
     {
         nk = 6;
         nr = 12;
     }
-    else if (k_len == 32)
+    else if (key_len == 32)
     {
         nk = 8;
         nr = 14;
     }
-    else 
-        return false;
+    else
+        return QByteArray();
+    
+    if (encrypted.isEmpty() || encrypted.length() % 16)
+        return QByteArray();
+
+    unsigned char *char_dec = new unsigned char[encrypted.length()];
+    memcpy(char_dec, encrypted.data(), encrypted.length());
 
     roundKeys = new byte*[4 * (nr + 1)];
     for (byte i = 0; i < 4 * (nr + 1); i++)
         roundKeys[i] = new byte[4];
-    KeyExpansion(key, 4, nr, nk, roundKeys);
+    KeyExpansion(reinterpret_cast<unsigned char*>(key), 4, nr, nk, roundKeys);
 
-    _invCipher(tmp_buffer, nr, nk);
-    xorWords(tmp_buffer, iv, 16);
-
-    for (uint32_t offset = 16; offset < ib_len; offset += 16)
+    _invCipher(char_dec, nr, nk);
+    xorWords(char_dec, iv, 16);
+    for (unsigned char offset = 16; offset < encrypted.length(); offset += 16)
     {
-        _invCipher(tmp_buffer + offset, nr, nk);
-        xorWords(tmp_buffer + offset, input_buffer + offset - 16, 16);
+        _invCipher(char_dec + offset, nr, nk);
+        xorWords(char_dec + offset, reinterpret_cast<unsigned char *>(encrypted.data()) + offset - 16, 16);
     }
-    
-    ob_len = ib_len;
-    for (; *(tmp_buffer + ob_len - 1) == 0x01; ob_len--) {}
-    if (*(tmp_buffer + ob_len - 1))
-        ob_len = ib_len;
-    else
-        ob_len--;
-
-    *output_buffer = new byte[ob_len];
-    memcpy(*output_buffer, tmp_buffer, ob_len);
 
     for (byte i = 0; i < 4 * (nr + 1); i++)
     {
@@ -633,9 +622,23 @@ bool AES_CBC_Decrypt(byte *input_buffer, uint32_t ib_len,
         delete[] roundKeys[i];
     }
 
-    delete[] roundKeys;
-    delete[] tmp_buffer;
-    return true;
+    unsigned int l = static_cast<unsigned int>(encrypted.length() - 1);
+    while (l > 0 && char_dec[l] == 0x00)
+        l--;
+
+    if (l == 0)
+    {
+        delete[] char_dec;
+        delete[] roundKeys;
+        return QByteArray();
+    }
+    else
+    {
+        QByteArray result = QByteArray(reinterpret_cast<char*>(char_dec), l);
+        delete[] char_dec;
+        delete[] roundKeys;
+        return result;
+    }
 }
 
 /*
