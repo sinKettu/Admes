@@ -641,23 +641,18 @@ QByteArray AES_CBC_Decrypt(QByteArray encrypted, char *key, unsigned int key_len
     }
 }
 
-/*
-void AES_test()
-{
-    std::cout << "AES-ECB test\n";
-    const byte mes[33] = "6b1ae00a9b25cc0fa0e0148472\0";
-    const byte key[17] = "5d201068a508d9b0";
-    const byte iv[17] =  "4512baa0bd3d1fa2";
-    std::cout << "Message: " << mes << std::endl;
-    std::cout << "Key: " << key << std::endl;
-    std::cout << "IV: " << iv << std::endl;
-    byte *enc;
-    uint32_t len;
-    AES_CBC_Encrypt((byte*)mes, 26, &enc, len, (byte *)key, 16, (byte *)iv);
-    std::cout << "Encrypted: " << enc << "\nLen: " << len << std::endl;
-    byte *dec;
-    uint32_t llen;
-    AES_CBC_Decrypt(enc, len, &dec, llen, (byte *)key, 16, (byte *) iv);
-    std::cout << "Decrypted: " << dec << "\nLen: " << llen << std::endl;
-}
-*/
+// void AES_test()
+// {
+//     std::cout << "AES-ECB test\n";
+//     const byte mes[30] = "6b1ae00a9b25cc0fa0e0148\0";
+//     char key[17] = "5d201068a508d9b0";
+//     byte iv[17] =  "4512baa0bd3d1fa2";
+//     std::cout << "Message: " << mes << std::endl;
+//     std::cout << "Key: " << key << std::endl;
+//     std::cout << "IV: " << iv << std::endl;
+//     QByteArray qmes = QByteArray((char *)mes, 29);
+//     QByteArray enc = AES_CBC_Encrypt(qmes, key, 16, iv);
+//     QByteArray dec = AES_CBC_Decrypt(enc, key, 16, iv);
+
+//     std::cout << "Decrypted: " << dec.data() << "\n";
+// }
