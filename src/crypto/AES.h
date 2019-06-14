@@ -9,3 +9,6 @@ QByteArray AES_CBC_Encrypt(QByteArray buffer, char *key, unsigned int key_len, u
 QByteArray AES_CBC_Decrypt(QByteArray encrypted, char *key, unsigned int key_len, unsigned char *iv);
 
 // void AES_test();
+
+// TODO:
+//      'RoundKeysInstall' function for optimizing
