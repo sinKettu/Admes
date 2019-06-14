@@ -7,7 +7,7 @@
 void help()
 {
     std::cout << "-==================================================== H E L P ===================================================-\n\n";
-    std::cout << "Welcome to 'admes', asynchronous P2P private messanger!\n";
+    std::cout << "Welcome to 'admes', asynchronous P2P private messenger!\n";
     std::cout << "The program still is under development, please remember this\n\n";
     std::cout << "You can control (give commands) the program with placing '/' at the beginning of input line\n";
     std::cout << "Available commands (commands in '<...>' are optional):\n\n";
