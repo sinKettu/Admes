@@ -3,6 +3,10 @@
 #include <QFile>
 
 bool logged = false;
+EllipticCurve *currentEC;
+Keychain *currentECKeys;
+QByteArray masterKey;
+QString userName;
 
 QByteArray UserDataToAESKey(QString login, QString password)
 {
@@ -82,7 +86,7 @@ QByteArray UserDataToAESKey(QString login, QString password)
 
 bool CreateAccount(QString login, QString password)
 {
-    QFile fout("config/users/login");
+    QFile fout("config/users/" + login);
     if (fout.exists())
     {
         std::cout << prefix << "User exists\n";
@@ -135,8 +139,71 @@ bool CreateAccount(QString login, QString password)
     }
 
     fout.write(userInfo);
+    fout.close();
     ec_deinit(new_ec);
     delete_keys(new_kc);
 
     return true;
+}
+
+bool LogIn(QString login, QString password)
+{
+    QFile fin("config/users/" + login);
+    if (!fin.exists())
+    {
+        return false;
+    }
+
+    int ec_id = *reinterpret_cast<int *>(fin.read(4).data());
+    int encAKLen = *reinterpret_cast<int *>(fin.read(4).data());
+    int encEKLen = *reinterpret_cast<int *>(fin.read(4).data());
+    
+    QByteArray encAESKey = fin.read(encAKLen);
+    if (encAESKey.length() != encAKLen)
+    {
+        fin.close();
+        return false;
+    }
+
+    QByteArray encEKeys = fin.read(encEKLen);
+    if (encEKeys.length() != encEKLen)
+    {
+        fin.close();
+        return false;
+    }
+
+    fin.close();
+    QByteArray masterKey = UserDataToAESKey(login, password);
+    QByteArray byteEKeys = AES_ECB_Decrypt(encEKeys, masterKey.data(), masterKey.length());
+    if (byteEKeys.isEmpty())
+    {
+        return false;
+    }
+
+    currentECKeys = qba_to_ecc_keys(byteEKeys);
+    if (currentECKeys == nullptr)
+    {
+        return false;
+    }
+    currentEC = ec_init(ec_id);
+
+    QByteArray decAESKey = ECC_Decrypt(currentEC, currentECKeys->PrivateKey, encAESKey);
+    if (decAESKey == masterKey)
+    {
+        logged = true;
+        userName = login;
+        return true;
+    }
+    else
+    {
+        ec_deinit(currentEC);
+        delete_keys(currentECKeys);
+        masterKey.clear();
+        return false;
+    }
+}
+
+bool IsLoggedIn()
+{
+    return logged;
 }
