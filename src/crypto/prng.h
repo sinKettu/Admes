@@ -10,7 +10,7 @@
 //
 // PRNG based on ECC
 //
-void EPNG_init(int, mpz_t);
+void EPNG_init(int, mpz_t seed);
 bool EPNG_inited();
 bool EPNG_get(mpz_t &);
 void EPNG_delete();

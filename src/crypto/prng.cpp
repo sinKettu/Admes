@@ -55,8 +55,8 @@ void EPNG_init(int n, mpz_t seed)
     if (epng_ec == nullptr)
         return;
 
-    mpz_mod(seed, seed, epng_ec->p);
     mpz_init_set(_seed, seed);
+    EPNG_get(_seed);
 
     epng_inited = true;
 }
