@@ -1,4 +1,5 @@
 #include "account.h"
+#include "common.h"
 #include <QFile>
 
 bool logged = false;
@@ -81,6 +82,13 @@ QByteArray UserDataToAESKey(QString login, QString password)
 
 bool CreateAccount(QString login, QString password)
 {
+    QFile fout("config/users/login");
+    if (fout.exists())
+    {
+        std::cout << prefix << "User exists\n";
+        return false;
+    }
+
     if (!EPNG_inited())
     {
         mpz_t seed;
@@ -90,10 +98,45 @@ bool CreateAccount(QString login, QString password)
         mpz_clear(seed);
     }
 
-    EllipticCurve *new_ec = ec_init(SECP521R1);
+    int ec_id = SECP521R1;
+    EllipticCurve *new_ec = ec_init(ec_id);
     Keychain *new_kc = ecc_keygen(new_ec);
-    QByteArray byteEcKey = ecc_keys_to_qba(new_kc);
+    QByteArray byteEccKeys = ecc_keys_to_qba(new_kc);
     QByteArray aesKey = UserDataToAESKey(login, password);
+    QByteArray encEccKeys = AES_ECB_Encrypt(byteEccKeys, aesKey.data(), aesKey.length());
+    if (encEccKeys.isEmpty())
+    {
+        ec_deinit(new_ec);
+        delete_keys(new_kc);
+        return false;
+    }
 
-    QFile fout("config/users");
+    QByteArray encAESKey = ECC_Encrypt(new_ec, new_kc->PublicKey, aesKey);
+    if (encAESKey.isEmpty())
+    {
+        ec_deinit(new_ec);
+        delete_keys(new_kc);
+        return false;
+    }
+
+    QByteArray userInfo;
+    userInfo.append(reinterpret_cast<char *>(&ec_id), 4);
+    userInfo.append(reinterpret_cast<char *>(encAESKey.length(), 4));
+    userInfo.append(reinterpret_cast<char *>(encEccKeys.length()), 4);
+    userInfo.append(encAESKey);
+    userInfo.append(encEccKeys);
+
+    if (!fout.open(QIODevice::WriteOnly))
+    {
+        ec_deinit(new_ec);
+        delete_keys(new_kc);
+        std::cout << prefix << "Couldn't read user file\n";
+        return false;
+    }
+
+    fout.write(userInfo);
+    ec_deinit(new_ec);
+    delete_keys(new_kc);
+
+    return true;
 }
