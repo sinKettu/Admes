@@ -3,6 +3,7 @@
 #include <QTextStream>
 #include "control.h"
 #include "common.h"
+#include "account.h"
 
 void help()
 {
@@ -96,6 +97,64 @@ int main(int argc, char *argv[])
         {
             help();
             continue;
+        }
+        if (commands.length() == 1 && !commands[0].compare("/create"))
+        {
+            std::cout << "New user's name: ";
+            QString login = qin.readLine();
+            if (login.length() == 0)
+            {
+                std::cout << prefix << "Bad login\n";
+                continue;
+            }
+            
+            std::cout << "Password: ";
+            QString password = qin.readLine();
+            if (password.length() == 0)
+            {
+                std:: cout << prefix << "Bad password\n";
+                continue;
+            }
+
+            if (CreateAccount(login, password))
+            {
+                std::cout << prefix << "Account was successfully created\n";
+                continue;
+            }
+            else
+            {
+                std::cout << prefix << "Couldn't create account\n";
+                continue;
+            }
+        }
+        if (commands.length() == 1 && commands[0].compare("/login") == 0)
+        {
+            std::cout << "Login: ";
+            QString login = qin.readLine();
+            if (login.length() == 0)
+            {
+                std::cout << prefix << "Bad login\n";
+                continue;
+            }
+            
+            std::cout << "Password: ";
+            QString password = qin.readLine();
+            if (password.length() == 0)
+            {
+                std:: cout << prefix << "Bad password\n";
+                continue;
+            }
+
+            if (LogIn(login, password))
+            {
+                std::cout << prefix << "Hi, " << login.toStdString() << "\n";
+                continue;
+            }
+            else
+            {
+                std::cout << prefix << "Couldn't log in\n";
+                continue;
+            }
         }
         if (commands[0].compare("/open") == 0 && commands.length() == 1)
         {

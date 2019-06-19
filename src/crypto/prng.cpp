@@ -55,19 +55,15 @@ void EPNG_init(int n, mpz_t seed)
     if (epng_ec == nullptr)
         return;
 
+    mpz_mod(seed, seed, epng_ec->p);
     mpz_init_set(_seed, seed);
-    EPNG_get(_seed);
 
     epng_inited = true;
 }
 
 void EPNG_delete()
 {
-    mpz_clears(epng_ec->p, epng_ec->a, epng_ec->b, 
-               epng_ec->q, epng_ec->G.x, epng_ec->G.y, 
-               _seed, NULL);
-
-
+    mpz_clear(_seed);
     ec_deinit(epng_ec);
     epng_inited = false;
 }

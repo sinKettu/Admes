@@ -16,6 +16,9 @@ QByteArray UserDataToAESKey(QString login, QString password)
         mpz_t saved;
         mpz_init(saved);
         EPNG_get(saved);
+        EPNG_get(saved);
+        EPNG_get(saved);
+        EPNG_get(saved);
 
         EPNG_delete();
         mpz_t seed;
@@ -23,14 +26,14 @@ QByteArray UserDataToAESKey(QString login, QString password)
         ecc_cstr_to_mpz(reinterpret_cast<unsigned char *>(tmp.data()), tmp.length(), seed);
         EPNG_init(SECP128R2, seed);
 
-        mpz_t mpz_key;
-        mpz_init(mpz_key);
-        EPNG_get(mpz_key);
+        mpz_t _key;
+        mpz_init(_key);
+        EPNG_get(_key);
         unsigned char *char_key;
         unsigned int l;
-        ecc_mpz_to_cstr(mpz_key, &char_key, l);
+        ecc_mpz_to_cstr(_key, &char_key, l);
         QByteArray aes_key = QByteArray(reinterpret_cast<char *>(char_key), l);
-        mpz_clears(seed, mpz_key, NULL);
+        mpz_clears(seed, _key, NULL);
         delete[] char_key;
 
         if (aes_key.length() < 16)
@@ -57,14 +60,14 @@ QByteArray UserDataToAESKey(QString login, QString password)
         ecc_cstr_to_mpz(reinterpret_cast<unsigned char *>(tmp.data()), tmp.length(), seed);
         EPNG_init(SECP128R2, seed);
 
-        mpz_t mpz_key;
-        mpz_init(mpz_key);
-        EPNG_get(mpz_key);
+        mpz_t _key;
+        mpz_init(_key);
+        EPNG_get(_key);
         unsigned char *char_key;
         unsigned int l;
-        ecc_mpz_to_cstr(mpz_key, &char_key, l);
+        ecc_mpz_to_cstr(_key, &char_key, l);
         QByteArray aes_key = QByteArray(reinterpret_cast<char *>(char_key), l);
-        mpz_clears(seed, mpz_key, NULL);
+        mpz_clears(seed, _key, NULL);
         delete[] char_key;
 
         if (aes_key.length() < 16)
@@ -86,7 +89,7 @@ QByteArray UserDataToAESKey(QString login, QString password)
 
 bool CreateAccount(QString login, QString password)
 {
-    QFile fout("config/users/" + login);
+    QFile fout("./config/users/" + login);
     if (fout.exists())
     {
         std::cout << prefix << "User exists\n";
@@ -125,8 +128,10 @@ bool CreateAccount(QString login, QString password)
 
     QByteArray userInfo;
     userInfo.append(reinterpret_cast<char *>(&ec_id), 4);
-    userInfo.append(reinterpret_cast<char *>(encAESKey.length(), 4));
-    userInfo.append(reinterpret_cast<char *>(encEccKeys.length()), 4);
+    ec_id = encAESKey.length();
+    userInfo.append(reinterpret_cast<char *>(&ec_id), 4);
+    ec_id = encEccKeys.length();
+    userInfo.append(reinterpret_cast<char *>(&ec_id), 4);
     userInfo.append(encAESKey);
     userInfo.append(encEccKeys);
 
@@ -148,8 +153,8 @@ bool CreateAccount(QString login, QString password)
 
 bool LogIn(QString login, QString password)
 {
-    QFile fin("config/users/" + login);
-    if (!fin.exists())
+    QFile fin("./config/users/" + login);
+    if (!(fin.exists() && fin.open(QIODevice::ReadOnly)))
     {
         return false;
     }
