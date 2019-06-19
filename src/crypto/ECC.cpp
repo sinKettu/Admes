@@ -436,5 +436,13 @@ int ECC_Check(EllipticCurve *ec, Point puk, QByteArray data, QByteArray signatur
 
 void ecc_test()
 {
-    // Function for testing
+    QByteArray a = QByteArray("Hello");
+    EllipticCurve *ec = ec_init(SECP521R1);
+    mpz_t b;
+    mpz_init_set_str(b, "235498435634683458457684", 10);
+    EPNG_init(SECP128R1, b);
+    Keychain *kc = ecc_keygen(ec);
+    QByteArray enc = ECC_Encrypt(ec, kc->PublicKey, a);
+    QByteArray dec = ECC_Decrypt(ec, kc->PrivateKey, enc);
+    printf("%s\n", dec.data());
 }
