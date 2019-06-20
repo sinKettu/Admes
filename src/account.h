@@ -11,3 +11,9 @@ bool IsLoggedIn();
 bool IsUserKnown(QString login);
 
 bool NewUser(QString login, QByteArray puk);
+
+QByteArray GetBytePuk();
+
+Point GetPuk();
+
+mpz_t GetPk();

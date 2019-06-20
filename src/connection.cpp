@@ -178,6 +178,8 @@ void Connection::slotRead()
             std::cout << prefix << "The connection (" << id << ") is established\n";
             connectionStage[id]++;
 
+            
+
             // socketMap.insert(id, WaitingForConfirmation[id]);
             // WaitingForConfirmation.remove(id);
             // chat->AddNewOne(id);
@@ -188,7 +190,7 @@ void Connection::slotRead()
             return;
         }
     }
-    else if (!message.compare(connectResp) && connectionStage.contains(id) && connectionStage[id] == 0)
+    else if (!message.compare(connectResp) && connectionStage.contains(id) && connectionStage[id] == 100)
     {
         std::cout << prefix << "The connection (" << id << ") is established\n";
         connectionStage[id]++;
@@ -225,7 +227,7 @@ void Connection::AdmesConnectionRequest(QTcpSocket *soc)
     {
         std::cout << prefix << "New conncetion at socket " << id << "\n";
 
-        connectionStage.insert(id, 0);
+        connectionStage.insert(id, 100);
         WaitingForConfirmation.insert(id, soc);
         connect(soc, SIGNAL(readyRead()), this, SLOT(slotRead()));
         connect(soc, SIGNAL(disconnected()), this, SLOT(slotDisconnectWarning()));

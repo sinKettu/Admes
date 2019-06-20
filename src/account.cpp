@@ -336,3 +336,23 @@ bool NewPeer(QString login, QByteArray puk, QByteArray key)
 
     return true;
 }
+
+QByteArray GetBytePuk()
+{
+    QByteArray tmp = ecc_keys_to_qba(currentECKeys);
+    if (tmp == nullptr)
+        return QByteArray();
+
+    int a = *reinterpret_cast<int*>(tmp.data());
+    return tmp.mid(a + 4);
+}
+
+Point GetPuk()
+{
+    return currentECKeys->PublicKey;
+}
+
+mpz_t GetPk()
+{
+    return currentECKeys->PrivateKey;
+}
