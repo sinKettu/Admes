@@ -142,9 +142,19 @@ void Connection::slotNewConnection()
     WaitingForConfirmation.insert(id, tmp);
 
     std::cout << prefix << "New conncetion at socket " << id << "\n";
+    connectionStage.insert(id, 0);
     connect(tmp, SIGNAL(readyRead()), this, SLOT(slotRead()));
     connect(tmp, SIGNAL(disconnected()), this, SLOT(slotDisconnectWarning()));
     connect(tmp, SIGNAL(disconnected()), tmp, SLOT(deleteLater()));
+}
+
+void Connection::BadConnection(qint64 id)
+{
+    std::cout << prefix << "connection establishment was failed\n";
+
+    WaitingForConfirmation[id]->disconnect();
+    WaitingForConfirmation.remove(id);
+    connectionStage.remove(id);
 }
 
 void Connection::slotRead()
@@ -156,34 +166,41 @@ void Connection::slotRead()
     // Connection establishing
     // Need to make this a part of a protocol
     // and move to another scoupe
-    if (!message.compare(connectReq))
+    if (socketMap.contains(id))
+        chat->AddToChat(id, "From", message);
+
+    if (!message.compare(connectReq) && connectionStage.contains(id) && connectionStage[id] == 0)
     {
         if (soc->write(connectResp.toLocal8Bit()) == connectResp.length() ||
             soc->write(connectResp.toLocal8Bit()) == connectResp.length() ||
             soc->write(connectResp.toLocal8Bit()) == connectResp.length() )
         {
             std::cout << prefix << "The connection (" << id << ") is established\n";
-            socketMap.insert(id, WaitingForConfirmation[id]);
-            WaitingForConfirmation.remove(id);
-            chat->AddNewOne(id);
+            connectionStage[id]++;
+
+            // socketMap.insert(id, WaitingForConfirmation[id]);
+            // WaitingForConfirmation.remove(id);
+            // chat->AddNewOne(id);
         }
         else
         {
-            std::cout << prefix << "Connection failure\n";
-            WaitingForConfirmation.remove(id);
-            soc->disconnect();
+            BadConnection(id);
             return;
         }
     }
-    else if (!message.compare(connectResp))
+    else if (!message.compare(connectResp) && connectionStage.contains(id) && connectionStage[id] == 0)
     {
         std::cout << prefix << "The connection (" << id << ") is established\n";
-        socketMap.insert(id, WaitingForConfirmation[id]);
-        WaitingForConfirmation.remove(id);
-        chat->AddNewOne(id);
+        connectionStage[id]++;
+
+        // socketMap.insert(id, WaitingForConfirmation[id]);
+        // WaitingForConfirmation.remove(id);
+        // chat->AddNewOne(id);
     }
-    else if (socketMap.contains(id))
-        chat->AddToChat(id, "From", message);
+    else
+    {
+        BadConnection(id);
+    }
 }
 
 void Connection::slotConnect(QString adr, quint16 port)
@@ -208,7 +225,7 @@ void Connection::AdmesConnectionRequest(QTcpSocket *soc)
     {
         std::cout << prefix << "New conncetion at socket " << id << "\n";
 
-        //socketMap.insert(id, soc);
+        connectionStage.insert(id, 0);
         WaitingForConfirmation.insert(id, soc);
         connect(soc, SIGNAL(readyRead()), this, SLOT(slotRead()));
         connect(soc, SIGNAL(disconnected()), this, SLOT(slotDisconnectWarning()));
@@ -248,7 +265,7 @@ void Connection::slotConnectSOCKS5(QString addr, quint16 port)
         memcpy(request + 5, addr.toStdString().c_str(), static_cast<size_t>(addr.length()));
         memcpy(request + 5 + addr.length(), &port, 2);
 
-        soc->write(request, 4 + 1+ addr.length() + 2);
+        soc->write(request, 4 + 1 + addr.length() + 2);
         delete[] request;
 
         soc->read(response, 10);

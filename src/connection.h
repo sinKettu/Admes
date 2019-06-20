@@ -47,15 +47,19 @@ public slots:
 private:
     void CheckUp();
     void AdmesConnectionRequest(QTcpSocket *);
+    void BadConnection(qint64 id);
 
-    QTcpServer *server = nullptr;
     QMap<qint64, QTcpSocket *> socketMap;
     QMap<qint64, QTcpSocket *> WaitingForConfirmation;
+    QMap<qint64, qint32> connectionStage;
+
+    QTcpServer *server = nullptr;
     QProcess *tor = nullptr;
     Chat *chat = nullptr;
     quint16 serverPort = 4242;
     quint16 socks5Port = 9050;
     bool firstWriting = true;
+
     // In UNIX will be used just "tor" command
     //      (tor should be installed)
     // In Windows user should specify path to tor.exe
