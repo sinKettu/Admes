@@ -1,12 +1,14 @@
 #include "account.h"
 #include "common.h"
 #include <QFile>
+#include <QMap>
 
 bool logged = false;
 EllipticCurve *currentEC;
 Keychain *currentECKeys;
 QByteArray masterKey;
 QString userName;
+QMap<QString, Point> knownPeers;
 
 QByteArray UserDataToAESKey(QString login, QString password)
 {
@@ -135,11 +137,12 @@ bool CreateAccount(QString login, QString password)
     userInfo.append(encAESKey);
     userInfo.append(encEccKeys);
 
-    if (!fout.open(QIODevice::WriteOnly))
+    QFile fout_k("config/users/" + login + "_known");
+    if (!fout.open(QIODevice::WriteOnly) || !fout_k.open(QIODevice::WriteOnly))
     {
         ec_deinit(new_ec);
         delete_keys(new_kc);
-        std::cout << prefix << "Couldn't read user file\n";
+        std::cout << prefix << "Couldn't open user files\n";
         return false;
     }
 
@@ -147,6 +150,71 @@ bool CreateAccount(QString login, QString password)
     fout.close();
     ec_deinit(new_ec);
     delete_keys(new_kc);
+
+    fout_k.close();
+
+    return true;
+}
+
+bool LoadKnownPeers(QString login, QByteArray key)
+{
+    QFile fin("config/users/" + login + "_known");
+    if (!fin.open(QIODevice::ReadOnly))
+    {
+        return false;
+    }
+
+    QByteArray buffer = fin.readAll();
+    fin.close();
+    if (buffer.length() % 16)
+    {
+        return false;
+    }
+    if (buffer.isEmpty())
+    {
+        knownPeers.clear();
+        return true;
+    }
+
+    QByteArray data = AES_ECB_Decrypt(buffer, key.data(), key.length());
+    QString name;
+    QByteArray puk;
+
+    qint32 start = 0, index = 0;
+    while (index < data.length())
+    {
+        if (data.at(index) == 0)
+        {
+            name = data.mid(start, index - start);
+            qint32 l = *reinterpret_cast<qint32*>(data.mid(index + 1, 4).data());
+            puk = data.mid(index + 5, l);
+            if (puk.length() != l)
+            {
+                knownPeers.clear();
+                return false;
+            }
+                
+            puk.push_front(static_cast<char>(0));
+            puk.push_front(static_cast<char>(1));
+            Keychain *kc = qba_to_ecc_keys(puk);
+            if (kc == nullptr)
+            {
+                knownPeers.clear();
+                return false;
+            }
+            
+            Point a;
+            mpz_inits(a.x, a.y, NULL);
+            pntcpy(kc->PublicKey, a);
+            knownPeers.insert(name, a);
+            delete_keys(kc);
+
+            index += 5 + l;
+            start = index;
+        }
+        else
+            index++;
+    }
 
     return true;
 }
@@ -193,7 +261,7 @@ bool LogIn(QString login, QString password)
     currentEC = ec_init(ec_id);
 
     QByteArray decAESKey = ECC_Decrypt(currentEC, currentECKeys->PrivateKey, encAESKey);
-    if (decAESKey == masterKey)
+    if (decAESKey == masterKey && LoadKnownPeers(login, masterKey))
     {
         logged = true;
         userName = login;
@@ -211,4 +279,52 @@ bool LogIn(QString login, QString password)
 bool IsLoggedIn()
 {
     return logged;
+}
+
+bool IsPeerKnown(QString login)
+{
+    return knownPeers.contains(login);
+}
+
+bool NewPeer(QString login, QByteArray puk, QByteArray key)
+{
+    if (IsPeerKnown(login))
+        return false;
+
+    QFile finout("./config/users/" + login + "_known");
+    if (!finout.open(QIODevice::ReadOnly))
+    {
+        return false;
+    }
+
+    QByteArray enc = finout.readAll();
+    QByteArray data = AES_ECB_Decrypt(enc, key.data(), key.length());
+    finout.close();
+
+    data.append(login.toLocal8Bit());
+    data.append("\0", 1);
+    int tmp = puk.length();
+    data.append(reinterpret_cast<char*>(&tmp), 4);
+    data.append(puk);
+    enc = AES_ECB_Encrypt(data, key.data(), key.length());
+
+    if (!finout.open(QIODevice::WriteOnly))
+    {
+        return false;
+    }
+
+    finout.write(enc);
+    finout.close();
+
+    puk.push_front(static_cast<char>(0));
+    puk.push_front(static_cast<char>(1));
+    Keychain *kc = qba_to_ecc_keys(puk);
+
+    Point a;
+    mpz_inits(a.x, a.y, NULL);
+    pntcpy(kc->PublicKey, a);
+    knownPeers.insert(login, a);
+    delete_keys(kc);
+
+    return true;
 }

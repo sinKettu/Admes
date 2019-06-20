@@ -7,3 +7,7 @@ bool LogIn(QString login, QString password);
 bool CreateAccount(QString login, QString password);
 
 bool IsLoggedIn();
+
+bool IsUserKnown(QString login);
+
+bool NewUser(QString login, QByteArray puk);
