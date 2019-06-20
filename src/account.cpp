@@ -216,6 +216,14 @@ bool LoadKnownPeers(QString login, QByteArray key)
             index++;
     }
 
+    if (!EPNG_inited())
+    {
+        mpz_t tmp;
+        mpz_init(tmp);
+        typing_random(tmp);
+        EPNG_init(SECP128R2, tmp);
+    }
+
     return true;
 }
 
