@@ -347,12 +347,17 @@ QByteArray GetBytePuk()
     return tmp.mid(a + 4);
 }
 
-Point GetPuk()
+QString GetLogin()
 {
-    return currentECKeys->PublicKey;
+    return userName;
 }
 
-mpz_t GetPk()
+EllipticCurve *GetEC()
 {
-    return currentECKeys->PrivateKey;
+    return currentEC;
+}
+
+Keychain *GetKeys()
+{
+    return currentECKeys;
 }

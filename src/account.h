@@ -14,6 +14,8 @@ bool NewUser(QString login, QByteArray puk);
 
 QByteArray GetBytePuk();
 
-Point GetPuk();
+QString GetLogin();
 
-mpz_t GetPk();
+EllipticCurve *GetEC();
+
+Keychain *GetKeys();
