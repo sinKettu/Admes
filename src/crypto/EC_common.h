@@ -65,6 +65,8 @@ void pnt_deinit(Point pnt);
 
 void pntcpy(Point src, Point &dst);
 
+bool pntcmp(Point a, Point b);
+
 bool pntExpand(EllipticCurve *ec, mpz_t x, mpz_t &y);
 
 void pntSum(EllipticCurve *ec, Point left, Point right, Point &result);
