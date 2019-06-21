@@ -2,6 +2,7 @@
 #define CONNECTION_H
 
 #include "chat.h"
+#include "account.h"
 #include <QObject>
 #include <QEventLoop>
 #include <QTcpServer>
@@ -48,10 +49,16 @@ private:
     void CheckUp();
     void AdmesConnectionRequest(QTcpSocket *);
     void BadConnection(qint64 id);
+    bool SendPuk(QTcpSocket *soc);
+    void SendLogin(QTcpSocket *soc, qint64 id);
+    int CheckPeer(qint64 id, QByteArray data);
 
     QMap<qint64, QTcpSocket *> socketMap;
     QMap<qint64, QTcpSocket *> WaitingForConfirmation;
     QMap<qint64, qint32> connectionStage;
+    QMap<qint64, Point> pukMap;
+    // Не забыть написать заполнение
+    QMap<QString, Point> peersPuks;
 
     QTcpServer *server = nullptr;
     QProcess *tor = nullptr;

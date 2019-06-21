@@ -152,37 +152,108 @@ void Connection::BadConnection(qint64 id)
 {
     std::cout << prefix << "connection establishment was failed\n";
 
-    WaitingForConfirmation[id]->disconnect();
-    WaitingForConfirmation.remove(id);
-    connectionStage.remove(id);
+    if (WaitingForConfirmation.contains(id))
+    {
+        WaitingForConfirmation[id]->disconnect();
+        WaitingForConfirmation.remove(id);
+    }
+    if (connectionStage.contains(id))
+    {
+        connectionStage.remove(id);
+    }
+    if (pukMap.contains(id))
+    {
+        pukMap.remove(id);
+    }
+}
+
+bool Connection::SendPuk(QTcpSocket *soc)
+{
+    QByteArray puk = GetBytePuk();
+    if (puk.isEmpty())
+        return false;
+    
+    puk.push_front('K');
+    puk.push_front('U');
+    puk.push_front('P');
+    soc->write(puk);
+    return true;
+}
+
+void Connection::SendLogin(QTcpSocket *soc, qint64 id)
+{
+    QString login = GetLogin();
+    EllipticCurve *ec = GetEC();
+    Keychain *kc = GetKeys();
+
+    QByteArray mes = "LOG";
+    QByteArray enc = ECC_Encrypt(ec, pukMap[id], login.toLocal8Bit());
+    QByteArray sign = ECC_Sign(ec, kc->PrivateKey, login.toLocal8Bit());
+    int tmp = enc.length();
+    mes.append(reinterpret_cast<char*>(&tmp), 4);
+    mes.append(enc);
+    tmp = sign.length();
+    mes.append(reinterpret_cast<char*>(&tmp), 4);
+    mes.append(sign);
+
+    soc->write(mes);
+}
+
+// -1 => Ключ не прошел подтверждение
+//  0 => Ключ подтверджен и пир известен
+//  1 => Незнакомый пир
+//  2 => Пир известен, ключ подтверджен, но не совпал с имеющимся
+int Connection::CheckPeer(qint64 id, QByteArray data)
+{
+    int enc_l = *reinterpret_cast<int*>(data.data());
+    QByteArray enc = data.mid(4, enc_l);
+    int sign_l = *reinterpret_cast<int*>(data.data() + 4 + enc_l);
+    QByteArray sign = data.mid(8 + enc_l, sign_l);
+
+    EllipticCurve *ec = ec_init(SECP521R1);
+    Keychain *kc = GetKeys();
+    QByteArray login = ECC_Decrypt(ec, kc->PrivateKey, enc);
+    if (ECC_Check(ec, pukMap[id], login, sign) == 0)
+    {
+        ec_deinit(ec);
+        return -1;
+    }
+
+    ec_deinit(ec);
+    if (!peersPuks.contains(QString::fromLocal8Bit(login)))
+    {
+        return 1;
+    }
+    else if (pntcmp(peersPuks[QString::fromLocal8Bit(login)], pukMap[id]) == 0)
+    {
+        return 0;
+    }
+    else
+    {
+        return 2;
+    }
 }
 
 void Connection::slotRead()
 {
     QTcpSocket *soc = (QTcpSocket *)QObject::sender();
     qint64 id = soc->socketDescriptor();
-    QString message = QString().fromLocal8Bit(soc->readAll());
+    QByteArray message = soc->readAll();
 
     // Connection establishing
     // Need to make this a part of a protocol
     // and move to another scoupe
     if (socketMap.contains(id))
-        chat->AddToChat(id, "From", message);
+        chat->AddToChat(id, "From", QString::fromLocal8Bit(message));
 
-    if (!message.compare(connectReq) && connectionStage.contains(id) && connectionStage[id] == 0)
+    if (connectionStage.contains(id) && connectionStage[id] == 0 && message == connectReq)
     {
         if (soc->write(connectResp.toLocal8Bit()) == connectResp.length() ||
             soc->write(connectResp.toLocal8Bit()) == connectResp.length() ||
             soc->write(connectResp.toLocal8Bit()) == connectResp.length() )
         {
             std::cout << prefix << "The connection (" << id << ") is established\n";
-            connectionStage[id]++;
-
-            
-
-            // socketMap.insert(id, WaitingForConfirmation[id]);
-            // WaitingForConfirmation.remove(id);
-            // chat->AddNewOne(id);
+            connectionStage[id]++; // become 1
         }
         else
         {
@@ -190,14 +261,132 @@ void Connection::slotRead()
             return;
         }
     }
-    else if (!message.compare(connectResp) && connectionStage.contains(id) && connectionStage[id] == 100)
+    else if (connectionStage.contains(id) && connectionStage[id] == 100 && message == connectResp)
     {
         std::cout << prefix << "The connection (" << id << ") is established\n";
-        connectionStage[id]++;
+        if (!SendPuk(soc))
+        {
+            BadConnection(id);
+            return;
+        }
 
-        // socketMap.insert(id, WaitingForConfirmation[id]);
-        // WaitingForConfirmation.remove(id);
-        // chat->AddNewOne(id);
+        connectionStage[id]++; // become 101
+    }
+    else if (connectionStage.contains(id) && connectionStage[id] == 1)
+    {
+        if (message.mid(0, 3) != "PUK")
+        {
+            BadConnection(id);
+            return;
+        }
+
+        message = message.mid(3);
+        message.push_front(static_cast<char>(0));
+        message.push_front(static_cast<char>(1));
+        Keychain *kc = qba_to_ecc_keys(message);
+        if (kc == nullptr)
+        {
+            BadConnection(id);
+            return;
+        }
+
+        Point puk = pnt_init();
+        pntcpy(kc->PublicKey, puk);
+        pukMap.insert(id, puk);
+        delete_keys(kc);
+
+        if (!SendPuk(soc))
+        {
+            BadConnection(id);
+            return;
+        }
+
+        connectionStage[id]++; // become 2
+    }
+    else if (connectionStage.contains(id) && connectionStage[id] == 101)
+    {
+        // отправить зашифрованный и подписанный логин
+        if (message.mid(0, 3) != "PUK")
+        {
+            BadConnection(id);
+            return;
+        }
+
+        message = message.mid(3);
+        message.push_front(static_cast<char>(0));
+        message.push_front(static_cast<char>(1));
+        Keychain *kc = qba_to_ecc_keys(message);
+        if (kc == nullptr)
+        {
+            BadConnection(id);
+            return;
+        }
+
+        Point puk = pnt_init();
+        pntcpy(kc->PublicKey, puk);
+        pukMap.insert(id, puk);
+        delete_keys(kc);
+
+        SendLogin(soc, id);
+        connectionStage[id]++; // become 102
+    }
+    else if (connectionStage.contains(id) && connectionStage[id] == 2)
+    {
+        // принять и проверить логин
+        if (message.mid(0,3) != "LOG")
+        {
+            BadConnection(id);
+            return;
+        }
+
+        // Необходимо вернуть логин!
+        int res = CheckPeer(id, message.mid(3));
+        if (res == -1)
+        {
+            std::cout << prefix << "The key is not authorized\n";
+            BadConnection(id);
+            return;
+        }
+        else if (res == 0)
+        {
+            std::cout << prefix << "Known peer\n";
+        }
+        else if (res == 1)
+        {
+            std::cout << prefix << "Unknown peer\n";
+            std::cout << prefix << "If you trus this peer, type '/accept ";
+            std::cout << QString::number(id).toStdString() << "'\n";
+        }
+        else if (res == 2)
+        {
+            std::cout << prefix << "Known peer, but keys did not match\n";
+            std::cout << prefix << "MitM-attack is possible\n";
+            std::cout << prefix << "Connection will be refused\n";
+            std::cout << prefix << "If you want connect, please remove old data manually and reconnect\n";
+            BadConnection(id);
+            return;
+        }
+
+        // отправить зашифрованный и подписанный логин
+        SendLogin(soc, id);
+        connectionStage[id]++; // become 3
+    }
+    else if (connectionStage.contains(id) && connectionStage[id] == 102)
+    {
+        // Проверить логин
+        // Отправить зашифрованное и подписанное случайное число А
+    }
+    else if (connectionStage.contains(id) && connectionStage[id] == 3)
+    {
+        // Сгенерировать случайное число B
+        // Получить сессионный ключ
+        // отправить зашифрованное и подписанное случайное число B
+        // Открыть окончательное соединение
+    }
+    else if (connectionStage.contains(id) && connectionStage[id] == 103)
+    {
+        // Получить сессионный ключ
+        // Открыть окончательное соединение
     }
     else
     {
