@@ -203,7 +203,7 @@ void Connection::SendLogin(QTcpSocket *soc, qint64 id)
 //  0 => Ключ подтверджен и пир известен
 //  1 => Незнакомый пир
 //  2 => Пир известен, ключ подтверджен, но не совпал с имеющимся
-int Connection::CheckPeer(qint64 id, QByteArray data)
+int Connection::CheckPeer(qint64 id, QByteArray data, QString &strLogin)
 {
     int enc_l = *reinterpret_cast<int*>(data.data());
     QByteArray enc = data.mid(4, enc_l);
@@ -220,18 +220,78 @@ int Connection::CheckPeer(qint64 id, QByteArray data)
     }
 
     ec_deinit(ec);
-    if (!peersPuks.contains(QString::fromLocal8Bit(login)))
+    strLogin = QString::fromLocal8Bit(login);
+    if (!peersPuks.contains(strLogin))
     {
+        strLogin = "";
         return 1;
     }
-    else if (pntcmp(peersPuks[QString::fromLocal8Bit(login)], pukMap[id]) == 0)
+    else if (pntcmp(peersPuks[strLogin], pukMap[id]) == 0)
     {
         return 0;
     }
     else
     {
+        strLogin = "";
         return 2;
     }
+}
+
+bool Connection::SendNumber(qint64 id)
+{
+    if (!EPNG_inited())
+        return false;
+
+    if (!WaitingForConfirmation.contains(id))
+        return false;
+
+    mpz_t num;
+    mpz_init(num);
+    EPNG_get(num);
+    unsigned char *buf;
+    unsigned int l;
+    ecc_mpz_to_cstr(num, &buf, l);
+    QByteArray data = QByteArray(reinterpret_cast<char*>(buf), l);
+
+    delete[] buf; 
+    mpz_clear(num);
+
+    WaitingForConfirmation[id]->write(data);
+    peersSessionKeys.insert(id, data);
+
+    return true;
+}
+
+void Connection::OpenSession(qint64 id, QTcpSocket *soc, QByteArray message)
+{
+    // Установить сессионный ключ
+    unsigned char *b = reinterpret_cast<unsigned char*>(peersSessionKeys[id].data());
+    unsigned char *a = reinterpret_cast<unsigned char*>(message.data());
+    mpz_t ma, mb;
+    mpz_inits(ma, mb, NULL);
+    ecc_cstr_to_mpz(a, message.length(), ma);
+    ecc_cstr_to_mpz(b, peersSessionKeys[id].length(), mb);
+    mpz_xor(ma, ma, mb);
+    a = nullptr;
+    unsigned int l;
+    ecc_mpz_to_cstr(ma, &a, l);
+    QByteArray sessionKey = QByteArray(reinterpret_cast<char *>(a), l);
+    delete[] a;
+    if (sessionKey.length() > 16)
+    {
+        sessionKey = sessionKey.mid(0, 16);
+    }
+    if (sessionKey.length() < 16)
+    {
+        while (sessionKey.length() != 16)
+            sessionKey.append('\00');
+    }
+    peersSessionKeys[id] = sessionKey;
+
+    // Открыть окончательное соединение
+    socketMap.insert(id, soc);
+    WaitingForConfirmation.remove(id);
+    connectionStage.remove(id);
 }
 
 void Connection::slotRead()
@@ -339,8 +399,8 @@ void Connection::slotRead()
             return;
         }
 
-        // Необходимо вернуть логин!
-        int res = CheckPeer(id, message.mid(3));
+        QString login;
+        int res = CheckPeer(id, message.mid(3), login);
         if (res == -1)
         {
             std::cout << prefix << "The key is not authorized\n";
@@ -349,20 +409,32 @@ void Connection::slotRead()
         }
         else if (res == 0)
         {
-            std::cout << prefix << "Known peer\n";
+            if (peerID.contains(login))
+            {
+                std::cout << prefix << "The peer is already connected\n";
+                std::cout << prefix << "New connection will be refused\n";
+                BadConnection(id);
+                return;
+            }
+            else
+            {
+                std::cout << prefix << "Known peer\n";
+                peerID.insert(login, id);
+            }
         }
         else if (res == 1)
         {
             std::cout << prefix << "Unknown peer\n";
-            std::cout << prefix << "If you trus this peer, type '/accept ";
+            std::cout << prefix << "If you trust this peer, type '/accept ";
             std::cout << QString::number(id).toStdString() << "'\n";
+            return;
         }
         else if (res == 2)
         {
             std::cout << prefix << "Known peer, but keys did not match\n";
             std::cout << prefix << "MitM-attack is possible\n";
             std::cout << prefix << "Connection will be refused\n";
-            std::cout << prefix << "If you want connect, please remove old data manually and reconnect\n";
+            std::cout << prefix << "If you want to connect, please, remove old data manually and reconnect\n";
             BadConnection(id);
             return;
         }
@@ -374,19 +446,73 @@ void Connection::slotRead()
     else if (connectionStage.contains(id) && connectionStage[id] == 102)
     {
         // Проверить логин
+        if (message.mid(0,3) != "LOG")
+        {
+            BadConnection(id);
+            return;
+        }
+
+        QString login;
+        int res = CheckPeer(id, message.mid(3), login);
+        if (res == -1)
+        {
+            std::cout << prefix << "The key is not authorized\n";
+            BadConnection(id);
+            return;
+        }
+        else if (res == 0)
+        {
+            if (peerID.contains(login))
+            {
+                std::cout << prefix << "The peer is already connected\n";
+                std::cout << prefix << "New connection will be refused\n";
+                BadConnection(id);
+                return;
+            }
+            else
+            {
+                std::cout << prefix << "Known peer\n";
+                peerID.insert(login, id);
+            }
+        }
+        else if (res == 1)
+        {
+            std::cout << prefix << "Unknown peer\n";
+            std::cout << prefix << "If you trust this peer, type '/accept ";
+            std::cout << QString::number(id).toStdString() << "'\n";
+            return;
+        }
+        else if (res == 2)
+        {
+            std::cout << prefix << "Known peer, but keys did not match\n";
+            std::cout << prefix << "MitM-attack is possible\n";
+            std::cout << prefix << "Connection will be refused\n";
+            std::cout << prefix << "If you want to connect, please, remove old data manually and reconnect\n";
+            BadConnection(id);
+            return;
+        }
+
         // Отправить зашифрованное и подписанное случайное число А
+        if (!SendNumber(id))
+        {
+            BadConnection(id);
+            return;
+        }
+        connectionStage[id]++; // become 103
     }
     else if (connectionStage.contains(id) && connectionStage[id] == 3)
     {
-        // Сгенерировать случайное число B
-        // Получить сессионный ключ
-        // отправить зашифрованное и подписанное случайное число B
-        // Открыть окончательное соединение
+        // Сгенерировать случайное число B и отправить
+        if (!SendNumber(id))
+        {
+            BadConnection(id);
+            return;
+        }
+        OpenSession(id, soc, message);
     }
     else if (connectionStage.contains(id) && connectionStage[id] == 103)
     {
-        // Получить сессионный ключ
-        // Открыть окончательное соединение
+        OpenSession(id, soc, message);
     }
     else
     {

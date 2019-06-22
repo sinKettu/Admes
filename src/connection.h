@@ -51,12 +51,16 @@ private:
     void BadConnection(qint64 id);
     bool SendPuk(QTcpSocket *soc);
     void SendLogin(QTcpSocket *soc, qint64 id);
-    int CheckPeer(qint64 id, QByteArray data);
+    int CheckPeer(qint64 id, QByteArray data, QString &strLogin);
+    bool SendNumber(qint64 id);
+    void OpenSession(qint64 id, QTcpSocket *soc, QByteArray message);
 
     QMap<qint64, QTcpSocket *> socketMap;
     QMap<qint64, QTcpSocket *> WaitingForConfirmation;
     QMap<qint64, qint32> connectionStage;
     QMap<qint64, Point> pukMap;
+    QMap<QString, qint64> peerID;
+    QMap<qint64, QByteArray> peersSessionKeys;
     // Не забыть написать заполнение
     QMap<QString, Point> peersPuks;
 
