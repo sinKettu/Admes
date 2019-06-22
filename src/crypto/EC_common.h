@@ -80,3 +80,7 @@ void ecc_mpz_to_cstr(mpz_t a, unsigned char** b, unsigned int &len);
 QByteArray ecc_keys_to_qba(Keychain *kc);
 
 Keychain *qba_to_ecc_keys(QByteArray buffer);
+
+QByteArray ecc_puk_to_qba(Point puk);
+
+Point ecc_qba_to_puk(QByteArray puk);

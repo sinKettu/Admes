@@ -447,3 +447,55 @@ Keychain *qba_to_ecc_keys(QByteArray buffer)
     else
         return nullptr;
 }
+
+QByteArray ecc_puk_to_qba(Point puk)
+{
+    unsigned char *x, *y;
+    unsigned int lx, ly;
+    ecc_mpz_to_cstr(puk.x, &x, lx);
+    ecc_mpz_to_cstr(puk.y, &y, ly);
+    QByteArray result;
+    
+    result.append(reinterpret_cast<char*>(&lx), 4);
+    result.append(reinterpret_cast<char*>(x), lx);
+    result.append(reinterpret_cast<char*>(&ly), 4);
+    result.append(reinterpret_cast<char*>(y), ly);
+
+    delete[] x;
+    delete[] y;
+
+    return result;
+}
+
+Point ecc_qba_to_puk(QByteArray puk)
+{
+    unsigned int lx, ly;
+    lx = *reinterpret_cast<unsigned int*>(puk.data());
+    if (puk.length() > 8 + lx)
+    {
+        ly = *reinterpret_cast<unsigned int*>(puk.data() + 4+ lx);    
+    }
+    else
+    {
+        Point result = pnt_init();
+        mpz_set_ui(result.x, 0);
+        mpz_set_ui(result.y, 0);
+
+        return result;
+    }
+    if (puk.length() == 8 + lx + ly)
+    {
+        Point result = pnt_init();
+        ecc_cstr_to_mpz(reinterpret_cast<unsigned char*>(puk.data() + 4), lx, result.x);
+        ecc_cstr_to_mpz(reinterpret_cast<unsigned char*>(puk.data() + 8 + lx), ly, result.y);
+        return result;
+    }
+    else
+    {
+        Point result = pnt_init();
+        mpz_set_ui(result.x, 0);
+        mpz_set_ui(result.y, 0);
+
+        return result;
+    }
+}
