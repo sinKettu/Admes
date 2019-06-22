@@ -379,15 +379,15 @@ void RemovePeer(QString login, Point puk)
 
     knownPeers.remove(login);
     QMap<QString, Point>::iterator iter;
+    QByteArray toWrite;
     for (iter = knownPeers.begin(); iter != knownPeers.end(); iter++)
     {
-        QByteArray toWrite = login.toLocal8Bit();
+        toWrite.append(login.toLocal8Bit());
         toWrite.push_back('\00');
-        Keychain kc;
-        mpz_init_set_ui(kc.PrivateKey, 0);
-        kc.PublicKey = pnt_init();
-        pntcpy(puk, kc.PublicKey);
-        QByteArray key = ecc_keys_to_qba(&kc);
-        if (key)
+        toWrite.append(ecc_puk_to_qba(puk));
     }
+
+    QByteArray enc = AES_ECB_Encrypt(toWrite, masterKey.data(), masterKey.length());
+    fout.write(enc);
+    fout.close();
 }
