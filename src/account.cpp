@@ -333,6 +333,7 @@ bool NewPeer(QString login, QByteArray puk, QByteArray key)
     pntcpy(kc->PublicKey, a);
     knownPeers.insert(login, a);
     delete_keys(kc);
+    pnt_deinit(a);
 
     return true;
 }
@@ -360,4 +361,33 @@ EllipticCurve *GetEC()
 Keychain *GetKeys()
 {
     return currentECKeys;
+}
+
+bool CheckKey(QString login, Point puk)
+{
+    return IsUserKnown(login) && pntcmp(puk, knownPeers[login]);
+}
+
+void RemovePeer(QString login, Point puk)
+{
+    if (!IsPeerKnown(login))
+        return;
+
+    QFile fout("/config/users/" + userName + "_known");
+    if (!(fout.exists() && fout.open(QIODevice::WriteOnly)))
+        return;
+
+    knownPeers.remove(login);
+    QMap<QString, Point>::iterator iter;
+    for (iter = knownPeers.begin(); iter != knownPeers.end(); iter++)
+    {
+        QByteArray toWrite = login.toLocal8Bit();
+        toWrite.push_back('\00');
+        Keychain kc;
+        mpz_init_set_ui(kc.PrivateKey, 0);
+        kc.PublicKey = pnt_init();
+        pntcpy(puk, kc.PublicKey);
+        QByteArray key = ecc_keys_to_qba(&kc);
+        if (key)
+    }
 }

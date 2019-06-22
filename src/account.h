@@ -10,7 +10,11 @@ bool IsLoggedIn();
 
 bool IsUserKnown(QString login);
 
-bool NewUser(QString login, QByteArray puk);
+bool CheckKey(QString login, Point puk);
+
+void RemovePeer(QString login, Point puk);
+
+bool NewPeer(QString login, QByteArray puk);
 
 QByteArray GetBytePuk();
 
