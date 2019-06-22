@@ -221,12 +221,12 @@ int Connection::CheckPeer(qint64 id, QByteArray data, QString &strLogin)
 
     ec_deinit(ec);
     strLogin = QString::fromLocal8Bit(login);
-    if (!knownPuks.contains(strLogin))
+    if (!IsUserKnown(strLogin))
     {
         strLogin = "";
         return 1;
     }
-    else if (pntcmp(knownPuks[strLogin], pukMap[id]) == 0)
+    else if (CheckKey(strLogin, pukMap[id]))
     {
         return 0;
     }
@@ -267,16 +267,19 @@ void Connection::OpenSession(qint64 id, QTcpSocket *soc, QByteArray message)
     // Установить сессионный ключ
     unsigned char *b = reinterpret_cast<unsigned char*>(peersSessionKeys[id].data());
     unsigned char *a = reinterpret_cast<unsigned char*>(message.data());
+
     mpz_t ma, mb;
     mpz_inits(ma, mb, NULL);
     ecc_cstr_to_mpz(a, message.length(), ma);
     ecc_cstr_to_mpz(b, peersSessionKeys[id].length(), mb);
     mpz_xor(ma, ma, mb);
+
     a = nullptr;
     unsigned int l;
     ecc_mpz_to_cstr(ma, &a, l);
     QByteArray sessionKey = QByteArray(reinterpret_cast<char *>(a), l);
     delete[] a;
+    
     if (sessionKey.length() > 16)
     {
         sessionKey = sessionKey.mid(0, 16);
@@ -292,7 +295,6 @@ void Connection::OpenSession(qint64 id, QTcpSocket *soc, QByteArray message)
     socketMap.insert(id, soc);
     WaitingForConfirmation.remove(id);
     connectionStage.remove(id);
-    pukMap.remove(id);
 }
 
 void Connection::slotRead()
@@ -305,7 +307,12 @@ void Connection::slotRead()
     // Need to make this a part of a protocol
     // and move to another scoupe
     if (socketMap.contains(id))
+    {
+        // Message: |IV|sign_len|sign|message|
+        // IV - AES-ECB with session key
+        // message - AES-CBC with session key and IV
         chat->AddToChat(id, "From", QString::fromLocal8Bit(message));
+    }
 
     if (connectionStage.contains(id) && connectionStage[id] == 0 && message == connectReq)
     {
