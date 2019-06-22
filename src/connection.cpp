@@ -221,12 +221,12 @@ int Connection::CheckPeer(qint64 id, QByteArray data, QString &strLogin)
 
     ec_deinit(ec);
     strLogin = QString::fromLocal8Bit(login);
-    if (!peersPuks.contains(strLogin))
+    if (!knownPuks.contains(strLogin))
     {
         strLogin = "";
         return 1;
     }
-    else if (pntcmp(peersPuks[strLogin], pukMap[id]) == 0)
+    else if (pntcmp(knownPuks[strLogin], pukMap[id]) == 0)
     {
         return 0;
     }
@@ -292,6 +292,7 @@ void Connection::OpenSession(qint64 id, QTcpSocket *soc, QByteArray message)
     socketMap.insert(id, soc);
     WaitingForConfirmation.remove(id);
     connectionStage.remove(id);
+    pukMap.remove(id);
 }
 
 void Connection::slotRead()

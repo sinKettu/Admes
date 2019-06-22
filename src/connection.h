@@ -62,7 +62,7 @@ private:
     QMap<QString, qint64> peerID;
     QMap<qint64, QByteArray> peersSessionKeys;
     // Не забыть написать заполнение
-    QMap<QString, Point> peersPuks;
+    QMap<QString, Point> knownPuks;
 
     QTcpServer *server = nullptr;
     QProcess *tor = nullptr;
