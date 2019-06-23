@@ -496,6 +496,8 @@ void Connection::slotRead()
         }
     }
 
+    bool a = connectionStage.contains(id);
+    int b = connectionStage[id];
     if (connectionStage.contains(id) && connectionStage[id] == 0 && message == connectReq)
     {
         if (soc->write(connectResp.toLocal8Bit()) == connectResp.length() ||
@@ -511,6 +513,10 @@ void Connection::slotRead()
             return;
         }
     }
+    else if (connectionStage.contains(id) && connectionStage[id] == 0 && message != connectReq)
+    {
+        return;
+    }
     else if (connectionStage.contains(id) && connectionStage[id] == 100 && message == connectResp)
     {
         std::cout << prefix << "The connection (" << id << ") is established\n";
@@ -522,11 +528,14 @@ void Connection::slotRead()
 
         connectionStage[id]++; // become 101
     }
+    else if (connectionStage.contains(id) && connectionStage[id] == 100 && message != connectResp)
+    {
+        return;
+    }
     else if (connectionStage.contains(id) && connectionStage[id] == 1)
     {
         if (message.mid(0, 3) != "PUK")
         {
-            BadConnection(id);
             return;
         }
 
@@ -561,7 +570,6 @@ void Connection::slotRead()
         // отправить зашифрованный и подписанный логин
         if (message.mid(0, 3) != "PUK")
         {
-            BadConnection(id);
             return;
         }
 
@@ -591,7 +599,6 @@ void Connection::slotRead()
         // принять и проверить логин
         if (message.mid(0,3) != "LOG")
         {
-            BadConnection(id);
             return;
         }
 
@@ -650,7 +657,6 @@ void Connection::slotRead()
         // Проверить логин
         if (message.mid(0,3) != "LOG")
         {
-            BadConnection(id);
             return;
         }
 
