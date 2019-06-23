@@ -84,7 +84,6 @@ QByteArray UserDataToAESKey(QString login, QString password)
             aes_key = aes_key.mid(0, 16);
         }
 
-        EPNG_delete();
         return aes_key;
     }
 }
@@ -195,6 +194,9 @@ bool LoadKnownPeers(QString login, QByteArray key)
             }
                 
             puk.push_front(static_cast<char>(0));
+            puk.push_front(static_cast<char>(0));
+            puk.push_front(static_cast<char>(0));
+            puk.push_front(static_cast<char>(0));
             puk.push_front(static_cast<char>(1));
             Keychain *kc = qba_to_ecc_keys(puk);
             if (kc == nullptr)
@@ -289,14 +291,14 @@ bool IsLoggedIn()
     return logged;
 }
 
-bool IsPeerKnown(QString login)
+bool IsUserKnown(QString login)
 {
     return knownPeers.contains(login);
 }
 
 bool NewPeer(QString login, QByteArray puk, QByteArray key)
 {
-    if (IsPeerKnown(login))
+    if (IsUserKnown(login))
         return false;
 
     QFile finout("./config/users/" + login + "_known");
@@ -324,6 +326,9 @@ bool NewPeer(QString login, QByteArray puk, QByteArray key)
     finout.write(enc);
     finout.close();
 
+    puk.push_front(static_cast<char>(0));
+    puk.push_front(static_cast<char>(0));
+    puk.push_front(static_cast<char>(0));
     puk.push_front(static_cast<char>(0));
     puk.push_front(static_cast<char>(1));
     Keychain *kc = qba_to_ecc_keys(puk);
@@ -370,7 +375,7 @@ bool CheckKey(QString login, Point puk)
 
 void RemovePeer(QString login, Point puk)
 {
-    if (!IsPeerKnown(login))
+    if (!IsUserKnown(login))
         return;
 
     QFile fout("/config/users/" + userName + "_known");

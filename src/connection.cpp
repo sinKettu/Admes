@@ -239,13 +239,13 @@ QString Connection::MessageExtract(QByteArray data, qint64 id, bool &signature)
         return result;
     }
 
-    QByteArray encIVBuf = data.mid(0, 16);
-    int tmp = *reinterpret_cast<int*>(data.data() + 16);
-    QByteArray SignBuf = data.mid(20, tmp);
-    QByteArray encMesBuf = data.mid(20 + tmp);
-    if (encIVBuf.length() != 16 || 
+    QByteArray encIVBuf = data.mid(0, 32);
+    int tmp = *reinterpret_cast<int*>(data.data() + 32);
+    QByteArray SignBuf = data.mid(36, tmp);
+    QByteArray encMesBuf = data.mid(36 + tmp);
+    if (encIVBuf.length() != 32 || 
         SignBuf.length() != tmp || 
-        encMesBuf.length() != data.length() - 20 - tmp ||
+        encMesBuf.length() != data.length() - 36 - tmp ||
         encMesBuf.length() < 16)
     {
         std::cout << prefix << "Couldn't parse message\n";
@@ -298,7 +298,7 @@ QString Connection::MessageExtract(QByteArray data, qint64 id, bool &signature)
 
 void Connection::BadConnection(qint64 id)
 {
-    std::cout << prefix << "connection establishment was failed\n";
+    std::cout << prefix << "Connection establishment was failed\n";
 
     if (WaitingForConfirmation.contains(id))
     {
@@ -375,7 +375,6 @@ int Connection::CheckPeer(qint64 id, QByteArray data, QString &strLogin)
     strLogin = QString::fromLocal8Bit(login);
     if (!IsUserKnown(strLogin))
     {
-        strLogin = "";
         return 1;
     }
     else if (CheckKey(strLogin, pukMap[id]))
@@ -447,6 +446,7 @@ void Connection::OpenSession(qint64 id, QTcpSocket *soc, QByteArray message)
     socketMap.insert(id, soc);
     WaitingForConfirmation.remove(id);
     connectionStage.remove(id);
+    chat->AddNewOne(id);
 }
 
 void Connection::slotRead()
@@ -511,6 +511,9 @@ void Connection::slotRead()
 
         message = message.mid(3);
         message.push_front(static_cast<char>(0));
+        message.push_front(static_cast<char>(0));
+        message.push_front(static_cast<char>(0));
+        message.push_front(static_cast<char>(0));
         message.push_front(static_cast<char>(1));
         Keychain *kc = qba_to_ecc_keys(message);
         if (kc == nullptr)
@@ -542,6 +545,9 @@ void Connection::slotRead()
         }
 
         message = message.mid(3);
+        message.push_front(static_cast<char>(0));
+        message.push_front(static_cast<char>(0));
+        message.push_front(static_cast<char>(0));
         message.push_front(static_cast<char>(0));
         message.push_front(static_cast<char>(1));
         Keychain *kc = qba_to_ecc_keys(message);
@@ -593,7 +599,7 @@ void Connection::slotRead()
         }
         else if (res == 1)
         {
-            std::cout << prefix << "Unknown peer\n";
+            std::cout << prefix << "Unknown peer " + login.toStdString() + "\n";
             std::cout << prefix << "If you trust this peer, type '/accept ";
             std::cout << QString::number(id).toStdString() << "'\n";
             std::cout << prefix << "In another case type '/refuse ";
@@ -682,10 +688,12 @@ void Connection::slotRead()
             return;
         }
         OpenSession(id, soc, message);
+        std::cout << prefix << "New session is opened\n";
     }
     else if (connectionStage.contains(id) && connectionStage[id] == 103)
     {
         OpenSession(id, soc, message);
+        std::cout << prefix << "New session is opened\n";
     }
     else
     {

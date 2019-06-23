@@ -158,6 +158,11 @@ int main(int argc, char *argv[])
         }
         if (commands[0].compare("/open") == 0 && commands.length() == 1)
         {
+            if (!IsLoggedIn())
+            {
+                std::cout << prefix << "You must log in first\n";
+                continue;;
+            }
             c->StartServer();
             continue;
         }
@@ -200,7 +205,7 @@ int main(int argc, char *argv[])
                 continue;
             }
         }
-        else if (!commands[0].compare("configure") && 
+        else if (!commands[0].compare("/configure") && 
                 (commands.length() == 3 || commands.length() == 5))
         {
             quint16 soc = 0;
@@ -268,6 +273,11 @@ int main(int argc, char *argv[])
         }
         if (commands[0].compare("/connect") == 0 && commands.length() >= 3)
         {
+            if (!IsLoggedIn())
+            {
+                std::cout << prefix << "You must log in first\n";
+                continue;;
+            }
             if (commands[1].compare("tor") == 0 && commands.length() == 4)
             {
                 c->ConnectThroughSOCKS5(commands[2], commands[3].toUShort());
