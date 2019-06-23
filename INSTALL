@@ -73,6 +73,7 @@ platform dependent, it may not work on your PC.
 -= W I N D O W S =-
 
 
+Only Windows x86.
 To compile admes in Windows totally recommended to use
 QtCreator downloaded from official site. If your Qt Kit
 was configured correctly, you need only to choose 'release'
@@ -88,7 +89,7 @@ from ...\Qt\5.*\mingw*\bin:
     -- libgcc_s_dw2-1.dll
 from ...\path\to\admes\libs\mpir:
     -- mpir.dll
-    
+
 In future versions a script for auto compiling will be added.
 
 - (!)PRE-COMPILED BINARIES(!):
@@ -100,8 +101,9 @@ In most cases, you will be able to use admes\bin\admes.exe.
 -= L I N U X =-
 
 
-To compile admes in Linux you can use console or
-QtCreator.
+Both Linux x86 and x64.
+To compile admes in Linux you can use console or QtCreator.
+
 Console: 
 
     $ cd path/to/admes
