@@ -381,12 +381,12 @@ bool CheckKey(QString login, Point puk)
     return IsUserKnown(login) && pntcmp(puk, knownPeers[login]);
 }
 
-void RemovePeer(QString login, Point puk)
+void RemovePeer(QString login)
 {
     if (!IsUserKnown(login))
         return;
 
-    QFile fout("/config/users/" + userName + "_known");
+    QFile fout("./config/users/" + userName + "_known");
     if (!(fout.exists() && fout.open(QIODevice::WriteOnly)))
         return;
 
@@ -395,9 +395,9 @@ void RemovePeer(QString login, Point puk)
     QByteArray toWrite;
     for (iter = knownPeers.begin(); iter != knownPeers.end(); iter++)
     {
-        toWrite.append(login.toLocal8Bit());
+        toWrite.append(iter.key().toLocal8Bit());
         toWrite.push_back('\00');
-        toWrite.append(ecc_puk_to_qba(puk));
+        toWrite.append(ecc_puk_to_qba(iter.value()));
     }
 
     QByteArray enc = AES_ECB_Encrypt(toWrite, masterKey.data(), masterKey.length());

@@ -12,7 +12,7 @@ bool IsUserKnown(QString login);
 
 bool CheckKey(QString login, Point puk);
 
-void RemovePeer(QString login, Point puk);
+void RemovePeer(QString login);
 
 bool NewPeer(QString login, Point pk);
 
