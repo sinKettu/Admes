@@ -397,6 +397,9 @@ void RemovePeer(QString login)
     {
         toWrite.append(iter.key().toLocal8Bit());
         toWrite.push_back('\00');
+        QByteArray buf = ecc_puk_to_qba(iter.value());
+        int l = buf.length();
+        toWrite.append(reinterpret_cast<char*>(&l), 4);
         toWrite.append(ecc_puk_to_qba(iter.value()));
     }
 
