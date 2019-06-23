@@ -298,26 +298,25 @@ bool IsUserKnown(QString login)
 
 bool NewPeer(QString login, Point pk)
 {
-    if (IsUserKnown(login))
+    if (IsUserKnown(login) || !logged)
         return false;
 
-    QFile finout("./config/users/" + login + "_known");
-    if (!finout.open(QIODevice::ReadOnly))
-    {
-        return false;
-    }
-
+    QFile finout("./config/users/" + userName + "_known");
+    QByteArray data;
     QByteArray puk = ecc_puk_to_qba(pk);
-    QByteArray enc = finout.readAll();
-    QByteArray data = AES_ECB_Decrypt(enc, masterKey.data(), masterKey.length());
-    finout.close();
-
+    if (finout.open(QIODevice::ReadOnly))
+    {
+        QByteArray enc = finout.readAll();
+        data = AES_ECB_Decrypt(enc, masterKey.data(), masterKey.length());
+        finout.close();
+    }
+    
     data.append(login.toLocal8Bit());
     data.append("\0", 1);
     int tmp = puk.length();
     data.append(reinterpret_cast<char*>(&tmp), 4);
     data.append(puk);
-    enc = AES_ECB_Encrypt(data, masterKey.data(), masterKey.length());
+    QByteArray enc = AES_ECB_Encrypt(data, masterKey.data(), masterKey.length());
 
     if (!finout.open(QIODevice::WriteOnly))
     {
