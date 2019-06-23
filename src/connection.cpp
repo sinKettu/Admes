@@ -593,7 +593,7 @@ void Connection::slotRead()
             }
             else
             {
-                std::cout << prefix << "Known peer\n";
+                std::cout << prefix << "Known peer " + login.toStdString() + "\n";
                 IDPeer.insert(id, login);
                 peerID.insert(login, id);
             }
@@ -652,7 +652,7 @@ void Connection::slotRead()
             }
             else
             {
-                std::cout << prefix << "Known peer\n";
+                std::cout << prefix << "Known peer " + login.toStdString() + "\n";
                 IDPeer.insert(id, login);
                 peerID.insert(login, id);
             }
@@ -909,10 +909,38 @@ void Connection::CheckUp()
             disconnectedSockets.push_back(soc.key());
         }
     }
+    for (soc = WaitingForConfirmation.begin(); soc != WaitingForConfirmation.end(); soc++)
+    {
+        if (soc.value()->state() == QAbstractSocket::UnconnectedState)
+        {
+            std::cout << prefix << "Socket " << soc.key() << " disconnected\n";
+            disconnectedSockets.push_back(soc.key());
+        }
+    }
     for (quint32 index = 0; index < disconnectedSockets.length(); index++)
     {
         chat->Remove(disconnectedSockets.at(index));
-        socketMap.remove(disconnectedSockets.at(index));
+        if (socketMap.contains(disconnectedSockets.at(index)))
+            socketMap.remove(disconnectedSockets.at(index));
+
+        if (WaitingForConfirmation.contains(disconnectedSockets.at(index)))
+            WaitingForConfirmation.remove(disconnectedSockets.at(index));
+        
+        if (IDPeer.contains(disconnectedSockets.at(index)))
+        {
+            if (peerID.contains(IDPeer[disconnectedSockets.at(index)]))
+                peerID.remove(IDPeer[disconnectedSockets.at(index)]);
+            IDPeer.remove(disconnectedSockets.at(index));
+        }
+
+        if (connectionStage.contains(disconnectedSockets.at(index)))
+            connectionStage.remove(disconnectedSockets.at(index));
+
+        if (pukMap.contains(disconnectedSockets.at(index)))
+            pukMap.remove(disconnectedSockets.at(index));
+        
+        if (peersSessionKeys.contains(disconnectedSockets.at(index)))
+            peersSessionKeys.remove(disconnectedSockets.at(index));
     }
 }
 

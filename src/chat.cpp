@@ -1,5 +1,6 @@
 #include "chat.h"
 #include "common.h"
+#include "account.h"
 
 Chat::Chat(QObject *parent) : QObject(parent)
 {
@@ -20,22 +21,14 @@ void Chat::AddToChat(qint64 id, QString who, QString message)
     {
         chats[id] << who << message;
 
-        if (id == current && who == "From")
+        if (id == current && GetLogin().compare(who))
         {
             std::cout << "\n[" << who.toStdString() << "]\n";
             std::cout << message.toStdString();
             std::cout << "\n\n";
         }
-        if (id == current && who == "To")
+        if (id == current && !GetLogin().compare(who))
             std::cout << "\n";
-    }
-    else
-    {
-        chats[id] = QStringList();
-        chats[id] << who << message;
-        std::cout << "[" << who.toStdString() << "]\n";
-        std::cout << message.toStdString();
-        std::cout << "\n";
     }
 }
 

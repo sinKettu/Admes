@@ -306,7 +306,7 @@ int main(int argc, char *argv[])
         }
         if (commands[0].compare("/chat") == 0 && commands.length() == 2)
         {
-            chatPeerName = commands[1].toLongLong();
+            chatPeerName = commands[1];
             c->OutputDialog(commands[1]);
             continue;
         }

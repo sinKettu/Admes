@@ -69,7 +69,7 @@ void pntcpy(Point src, Point &dst)
 
 bool pntcmp(Point a, Point b)
 {
-    return mpz_cmp(a.x, b.x) | mpz_cmp(a.y, b.y);
+    return !(mpz_cmp(a.x, b.x) || mpz_cmp(a.y, b.y));
 }
 
 bool sqrt_modulo_p(mpz_t a, mpz_t p, mpz_t &res)
