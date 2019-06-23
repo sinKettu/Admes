@@ -25,6 +25,7 @@ Control::Control(QObject *parent) : QObject(parent)
     connect(this, SIGNAL(sigShowTorLog()),              &connection, SLOT(slotShowTorLog()));
     connect(this, SIGNAL(sigAccept(qint64)),            &connection, SLOT(slotAccept(qint64)));
     connect(this, SIGNAL(sigRefuse(qint64)),            &connection, SLOT(slotRefuse(qint64)));
+    connect(this, SIGNAL(sigShowConnected()),           &connection, SLOT(slotShowConnected()));
 
 #if defined(_WIN32) || defined(_WIN64)
 
@@ -105,6 +106,11 @@ void Control::Accept(qint64 id)
 void Control::Refuse(qint64 id)
 {
     emit sigRefuse(id);
+}
+
+void Control::ShowConnected()
+{
+    emit sigShowConnected();
 }
 
 #if defined(_WIN32) || defined(_WIN64)

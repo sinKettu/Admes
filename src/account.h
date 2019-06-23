@@ -16,6 +16,8 @@ void RemovePeer(QString login, Point puk);
 
 bool NewPeer(QString login, Point pk);
 
+void ShowKnown();
+
 QByteArray GetBytePuk();
 
 QString GetLogin();

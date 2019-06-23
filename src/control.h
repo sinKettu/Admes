@@ -24,6 +24,7 @@ public:
     void ShowTorLog();
     void Accept(qint64 id);
     void Refuse(qint64 id);
+    void ShowConnected();
 
 #if defined(_WIN32) || defined(_WIN64)
 
@@ -47,6 +48,7 @@ signals:
     void sigShowTorLog();
     void sigAccept(qint64);
     void sigRefuse(qint64);
+    void sigShowConnected();
     
 #if defined(_WIN32) || defined(_WIN64)
 

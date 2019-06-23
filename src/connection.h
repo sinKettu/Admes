@@ -40,6 +40,7 @@ public slots:
     void slotShowTorLog();
     void slotAccept(qint64);
     void slotRefuse(qint64);
+    void slotShowConnected();
 
 #if defined(_WIN32) || defined(_WIN64)
 

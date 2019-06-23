@@ -286,6 +286,32 @@ int main(int argc, char *argv[])
                 continue;
             }
         }
+        if (commands.length() == 2 && !commands[0].compare("/list"))
+        {
+            if (!commands[1].compare("known"))
+            {
+                if (!IsLoggedIn())
+                {
+                    std::cout << prefix << "You must log in first\n";
+                    continue;;
+                }
+
+                ShowKnown();
+                continue;
+            }
+            else if (!commands[1].compare("connected"))
+            {
+                if (!IsLoggedIn())
+                {
+                    std::cout << prefix << "You must log in first\n";
+                    continue;;
+                }
+
+                c->ShowConnected();
+                continue;
+            }
+            
+        }
         if (commands[0].compare("/connect") == 0 && commands.length() >= 3)
         {
             if (!IsLoggedIn())

@@ -1087,6 +1087,17 @@ void Connection::slotRefuse(qint64 id)
     }
 }
 
+void Connection::slotShowConnected()
+{
+    int i = 1;
+    QMap<qint64, QTcpSocket*>::iterator iter;
+    for (iter = socketMap.begin(); iter != socketMap.end(); iter++)
+    {
+        std::cout << "[peer] " << i << ". " << IDPeer[iter.key()].toStdString() << "\n";
+        i++;
+    }
+}
+
 #if defined(_WIN32) || defined(_WIN64)
 
 void Connection::slotSpecifyTorPath(QString path)

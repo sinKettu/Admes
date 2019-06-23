@@ -404,3 +404,14 @@ void RemovePeer(QString login, Point puk)
     fout.write(enc);
     fout.close();
 }
+
+void ShowKnown()
+{
+    int i = 1;
+    QMap<QString, Point>::iterator iter;
+    for (iter = knownPeers.begin(); iter != knownPeers.end(); iter++)
+    {
+        std::cout << "[peer] " << i << ". " << iter.key().toStdString() << "\n";
+        i++;
+    }
+}
