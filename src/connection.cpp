@@ -69,7 +69,7 @@ void Connection::slotRunTor()
     connect(tor, SIGNAL(readyReadStandardOutput()), this, SLOT(slotReadTorOutput()));
     connect(tor, SIGNAL(readyReadStandardError()), this, SLOT(slotReadTorOutput()));
     tor->setProgram(tor_path);
-    QDir tor_conf("./tor_config");
+    QDir tor_conf("./config");
     if (!tor_conf.exists() && !QDir::current().mkdir(tor_conf.path()))
     {
         std::cout << prefix << "Can't create " << tor_conf.absolutePath().toStdString() << "\n";
@@ -961,7 +961,7 @@ void Connection::slotReadTorOutput()
     QProcess *proc = reinterpret_cast<QProcess *>(QObject::sender());
     QByteArray output = proc->readAllStandardOutput();
     output.append(proc->readAllStandardError());
-    QFile fout("./tor_config/last_session.log");
+    QFile fout("./config/last_session.log");
     if (firstWriting && fout.open(QIODevice::WriteOnly))
     {
         fout.write(output);
@@ -981,7 +981,7 @@ void Connection::slotReadTorOutput()
 
 void Connection::slotShowTorLog()
 {
-    QFile fout("./tor_config/last_session.log");
+    QFile fout("./config/last_session.log");
     if (fout.open(QIODevice::ReadOnly))
     {
         while (!fout.atEnd())
