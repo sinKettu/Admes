@@ -436,6 +436,8 @@ void Connection::slotRead()
             std::cout << prefix << "Unknown peer\n";
             std::cout << prefix << "If you trust this peer, type '/accept ";
             std::cout << QString::number(id).toStdString() << "'\n";
+            std::cout << prefix << "In another case type '/refuse ";
+            std::cout << QString::number(id).toStdString() << "'\n";
             return;
         }
         else if (res == 2)
@@ -488,6 +490,8 @@ void Connection::slotRead()
         {
             std::cout << prefix << "Unknown peer\n";
             std::cout << prefix << "If you trust this peer, type '/accept ";
+            std::cout << QString::number(id).toStdString() << "'\n";
+            std::cout << prefix << "In another case type '/refuse ";
             std::cout << QString::number(id).toStdString() << "'\n";
             return;
         }
@@ -737,6 +741,57 @@ void Connection::slotShowTorLog()
     else
     {
         std::cout << prefix << "Couldn't open Tor log\n";
+    }
+}
+
+void Connection::slotAccept(qint64 id)
+{
+    if (!WaitingForConfirmation.contains(id) || !connectionStage.contains(id))
+    {
+        std::cout << prefix << "Couldn't find connection '" << id << "'\n";
+        return;
+    }
+
+    if (connectionStage[id] == 2)
+    {
+        // отправить зашифрованный и подписанный логин
+        SendLogin(WaitingForConfirmation[id], id);
+        connectionStage[id]++; // become 3
+    }
+    else if (connectionStage[id] == 102)
+    {
+        // Отправить зашифрованное и подписанное случайное число А
+        if (!SendNumber(id))
+        {
+            BadConnection(id);
+            return;
+        }
+        connectionStage[id]++; // become 103
+    }
+    else
+    {
+        std::cout << prefix << "Wrong connection stage to 'accept'\n";
+    }
+
+    std::cout << prefix << "Connection was accepted\n";
+}
+
+void Connection::slotRefuse(qint64 id)
+{
+    if (!WaitingForConfirmation.contains(id) || !connectionStage.contains(id))
+    {
+        std::cout << prefix << "Couldn't find connection '" << id << "'\n";
+        return;
+    }
+
+    if (connectionStage[id] == 2 || connectionStage[id] == 102)
+    {
+        BadConnection(id);
+        return;
+    }
+    else
+    {
+        std::cout << prefix << "Wrong connection stage to 'refuse'\n";
     }
 }
 

@@ -279,6 +279,16 @@ int main(int argc, char *argv[])
                 continue;
             }
         }
+        if (commands.length() == 2 && !commands[0].compare("/accept"))
+        {
+            c->Accept(commands[1].toLongLong());
+            continue;
+        }
+        if (commands.length() == 2 && !commands[0].compare("/refuse"))
+        {
+            c->Refuse(commands[1].toLongLong());
+            continue;
+        }
         if (commands[0].compare("/disconnect") == 0 && commands.length() == 2)
         {
             c->Disconnect(commands[1].toLongLong());

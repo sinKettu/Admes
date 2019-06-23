@@ -38,6 +38,8 @@ public slots:
     void slotSpecifyPortForSOCKS5(quint16 port);
     void slotReadTorOutput();
     void slotShowTorLog();
+    void slotAccept(qint64);
+    void slotRefuse(qint64);
 
 #if defined(_WIN32) || defined(_WIN64)
 

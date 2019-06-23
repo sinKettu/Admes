@@ -22,6 +22,8 @@ public:
     void SpecifyPortForListening(quint16 port);
     void SpecifyPortForSOCKS5(quint16 port);
     void ShowTorLog();
+    void Accept(qint64 id);
+    void Refuse(qint64 id);
 
 #if defined(_WIN32) || defined(_WIN64)
 
@@ -43,6 +45,8 @@ signals:
     void sigSpecifyPortForSOCKS5(quint16);
     void sigCloseProgram();
     void sigShowTorLog();
+    void sigAccept(qint64);
+    void sigRefuse(qint64);
     
 #if defined(_WIN32) || defined(_WIN64)
 

@@ -23,6 +23,8 @@ Control::Control(QObject *parent) : QObject(parent)
     connect(this, SIGNAL(sigSpecifyPortForListening(quint16)), &connection, SLOT(slotSpecifyPortForListening(quint16)));
     connect(this, SIGNAL(sigSpecifyPortForSOCKS5(quint16)),  &connection,   SLOT(slotSpecifyPortForSOCKS5(quint16)));
     connect(this, SIGNAL(sigShowTorLog()),              &connection, SLOT(slotShowTorLog()));
+    connect(this, SIGNAL(sigAccept(qint64)),            &connection, SLOT(slotAccept(qint64)));
+    connect(this, SIGNAL(sigRefuse(qint64)),            &connection, SLOT(slotRefuse(qint64)));
 
 #if defined(_WIN32) || defined(_WIN64)
 
@@ -92,6 +94,16 @@ void Control::SpecifyPortForSOCKS5(quint16 port)
 void Control::ShowTorLog()
 {
     emit sigShowTorLog();
+}
+
+void Control::Accept(qint64 id)
+{
+    emit sigAccept(id);
+}
+
+void Control::Refuse(qint64 id)
+{
+    emit sigRefuse(id);
 }
 
 #if defined(_WIN32) || defined(_WIN64)
