@@ -13,27 +13,39 @@ void help()
     std::cout << "The program still is under development, please remember this\n\n";
     std::cout << "You can control (give commands) the program with placing '/' at the beginning of input line\n";
     std::cout << "Available commands (commands in '<...>' are optional):\n\n";
+    /* /create */
+    std::cout << "/create -- creating new admes account. Uniqueness of account is determined by private EC key.\n\n";
+    /* /login */
+    std::cout << "/login -- loggin in\n\n";
     /* /open ... */
     std::cout << "/open -- starting a server listening to specified port for incomming connections\n\n";
     /* /connect ... */
     std::cout << "/connect <tor> 'address' 'port' -- connecting to 'address':'port'\n";
     std::cout << "\t\tif you are specifying 'tor', you should specify tor hidden service address at 'address',\n";
     std::cout << "\t\tand the program will connect to this\n\n";
+    /* /accept ... */
+    std::cout << "/accept 'descriptor' -- accepting connection with unknown peer\n";
+    std::cout << "\t\t(admes will say when you will have to enter this)\n\n";
+    /* /refuse ... */
+    std::cout << "/refuse 'descriptor' -- refusing connection with unknown peer\n";
+    std::cout << "\t\t(admes will say when you will have to enter this)\n\n";
     /* /chat ... */
-    std::cout << "/chat 'descriptor' -- starting a chat mode with socket (connection) 'descriptor'\n";
+    std::cout << "/chat 'peer' -- starting a chat mode with peer 'peer'\n";
     std::cout << "\t\tIn the chat mode all your input without '/' at beginning of input line\n";
-    std::cout << "\t\twill be considered as outcomming message to 'descriptor'\n\n";
+    std::cout << "\t\twill be considered as outcomming message to 'peer'\n\n";
     /* /close */
     std::cout << "/close -- stopping a chat mode\n\n";
     /* /disconnect ... */
-    std::cout << "/disconnect 'descriptor' -- disconnecting socket 'descriptor', clearing all message history with it\n\n";
+    std::cout << "/disconnect 'peer' -- disconnecting socket 'peer', clearing all message history with it\n\n";
+    /* /remove ... */
+    std::cout << "/remove 'peer' -- removing 'peer' from list of known ones\n\n";
     /* /tor ... */
     std::cout << "/tor <check|kill|start|log> -- checking if tor is run |\n";
     std::cout << "\t\tchecking and killing tor |\n";
     std::cout << "\t\tstarting tor with user configurations |\n";
     std::cout << "\t\tOutput log of the Tor session\n\n";
     /* /configure ... */
-    std::cout << "/configure <socks 'port'> <port 'port'> -- configuring ports which SOCKS5 server and\n\n";
+    std::cout << "/configure <socks 'port'> <port 'port'> -- configuring ports which SOCKS5 server and\n";
     std::cout << "\t\tAdmes server will listen to. Defaults: SOCKS5 - 9050, Admes - 4242\n\n";
     /* /version */
     std::cout << "/version -- version of Admes\n\n";
@@ -377,7 +389,7 @@ int main(int argc, char *argv[])
         }
         if (!commands[0].compare("/version") && commands.length() == 1)
         {
-            std::cout << prefix << "Version: 0.1\n";
+            std::cout << prefix << "Version: 1.0\n";
             continue;
         }
         if (!commands[0].compare("/exit") && commands.length() == 1)
