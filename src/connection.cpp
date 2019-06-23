@@ -575,6 +575,8 @@ void Connection::slotRead()
         }
 
         QString login;
+        IDPeer.insert(id, login);
+        peerID.insert(login, id);
         int res = CheckPeer(id, message.mid(3), login);
         if (res == -1)
         {
@@ -594,7 +596,6 @@ void Connection::slotRead()
             else
             {
                 std::cout << prefix << "Known peer\n";
-                peerID.insert(login, id);
             }
         }
         else if (res == 1)
@@ -833,6 +834,12 @@ void Connection::slotDisconnect(qint64 id)
         {
             peersSessionKeys.remove(id);
         }
+        if (IDPeer.contains(id))
+        {
+            if (peerID.contains(IDPeer[id]))
+                peerID.remove(IDPeer[id]);
+            IDPeer.remove(id);
+        }
     }
     else if (WaitingForConfirmation.contains(id))
     {
@@ -851,14 +858,21 @@ void Connection::slotDisconnect(qint64 id)
         {
             peersSessionKeys.remove(id);
         }
+        if (IDPeer.contains(id))
+        {
+            if (peerID.contains(IDPeer[id]))
+                peerID.remove(IDPeer[id]);
+            IDPeer.remove(id);
+        }
     }
     else
         std::cout << prefix << "No such socket exists\n";
 }
 
+// FIX DISCONNECTING
 void Connection::slotDisconnectWarning()
 {
-    CheckUp();
+    CheckUp(); 
 }
 
 void Connection::slotOutputDialog(qint64 id)
@@ -954,12 +968,22 @@ void Connection::slotAccept(qint64 id)
 
     if (connectionStage[id] == 2)
     {
+        NewPeer(IDPeer[id], pukMap[id]);
         // отправить зашифрованный и подписанный логин
         SendLogin(WaitingForConfirmation[id], id);
         connectionStage[id]++; // become 3
     }
     else if (connectionStage[id] == 102)
     {
+        if (!NewPeer(IDPeer[id], pukMap[id]))
+        {
+            std::cout << prefix << "Couldn't add " + IDPeer[id].toStdString() + " to known peers\n";
+        }
+        else
+        {
+            std::cout << prefix << IDPeer[id].toStdString() << " was added to known peers\n";
+        }
+
         // Отправить зашифрованное и подписанное случайное число А
         if (!SendNumber(id))
         {

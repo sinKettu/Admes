@@ -14,7 +14,7 @@ bool CheckKey(QString login, Point puk);
 
 void RemovePeer(QString login, Point puk);
 
-bool NewPeer(QString login, QByteArray puk);
+bool NewPeer(QString login, Point pk);
 
 QByteArray GetBytePuk();
 
