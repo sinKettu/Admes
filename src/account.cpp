@@ -158,11 +158,20 @@ bool CreateAccount(QString login, QString password)
 bool LoadKnownPeers(QString login, QByteArray key)
 {
     QFile fin("config/users/" + login + "_known");
+    if (!fin.exists())
+    {
+        fin.open(QIODevice::WriteOnly);
+        fin.close();
+        knownPeers.clear();
+        return true;
+    }
+    
     if (!fin.open(QIODevice::ReadOnly))
     {
         return false;
     }
 
+    knownPeers.clear();
     QByteArray buffer = fin.readAll();
     fin.close();
     if (buffer.length() % 16)
@@ -171,7 +180,6 @@ bool LoadKnownPeers(QString login, QByteArray key)
     }
     if (buffer.isEmpty())
     {
-        knownPeers.clear();
         return true;
     }
 
