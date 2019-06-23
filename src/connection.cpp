@@ -470,7 +470,7 @@ void Connection::slotRead()
             return;
         else
         {
-            chat->AddToChat(id, "From", mes);
+            chat->AddToChat(id, IDPeer[id], mes);
             return;
         }
     }
@@ -804,8 +804,9 @@ void Connection::slotConnectSuccess()
     AdmesConnectionRequest(soc);
 }
 
-void Connection::slotWrite(qint64 id, QString message)
+void Connection::slotWrite(QString peerName, QString message)
 {
+    qint64 id = peerID[peerName];
     if (socketMap.contains(id))
     {
         QByteArray toWrite = MessagePackaging(message, id);
@@ -819,13 +820,13 @@ void Connection::slotWrite(qint64 id, QString message)
             socketMap[id]->write(toWrite) == toWrite.length() ||
             socketMap[id]->write(toWrite) == toWrite.length())
         {
-            chat->AddToChat(id, "To", message);
+            chat->AddToChat(id, GetLogin(), message);
         }
         else
             std::cout << prefix << "Sending failure\n";
     }
     else
-        std::cout << prefix << "No socket" << id << "exists";
+        std::cout << prefix << "No connected peer '" << peerName.toStdString() << "' exists\n";
 }
 
 void Connection::slotDisconnect(qint64 id)
@@ -882,9 +883,13 @@ void Connection::slotDisconnectWarning()
     CheckUp(); 
 }
 
-void Connection::slotOutputDialog(qint64 id)
+void Connection::slotOutputDialog(QString peer)
 {
-    chat->Output(id);
+    if (peerID.contains(peer))
+    {
+        qint64 id = peerID[peer];
+        chat->Output(id);
+    }
 }
 
 void Connection::slotCloseDialog()

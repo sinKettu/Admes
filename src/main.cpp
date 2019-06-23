@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
     QString input;
     Control *c = new Control();
     QObject::connect(c, SIGNAL(sigCloseProgram()), &a, SLOT(quit()), Qt::QueuedConnection);
-    qint64 chatID = 0;
+    QString chatPeerName = 0;
     bool run = true;
 
     HighLight(QString("admes is ready to interpret your commands!"));
@@ -306,18 +306,18 @@ int main(int argc, char *argv[])
         }
         if (commands[0].compare("/chat") == 0 && commands.length() == 2)
         {
-            chatID = commands[1].toLongLong();
-            c->OutputDialog(chatID);
+            chatPeerName = commands[1].toLongLong();
+            c->OutputDialog(commands[1]);
             continue;
         }
-        if (chatID && input[0] != '/')
+        if (chatPeerName.length() && input[0] != '/')
         {
-            c->Send(chatID, input);
+            c->Send(chatPeerName, input);
             continue;
         }
         if (!commands[0].compare("/close") && commands.length() == 1)
         {
-            chatID = 0;
+            chatPeerName = "";
             c->CloseDialog();
             continue;
         }

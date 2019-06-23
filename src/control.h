@@ -11,12 +11,12 @@ class Control : public QObject
 public:
     explicit Control(QObject *parent = nullptr);
     void StartServer();
-    void Send(qint64 id, QString message);
+    void Send(QString peerName, QString message);
     void StopAll();
     void ConnectTo(QString adr, quint16 port);
     void Disconnect(qint64 id);
     void ConnectThroughSOCKS5(QString addr, quint16 port);
-    void OutputDialog(qint64 id);
+    void OutputDialog(QString peer);
     void CloseDialog();
     void RunTor();
     void SpecifyPortForListening(quint16 port);
@@ -34,11 +34,11 @@ public:
 signals:
     void sigStartServer();
     void sigStopAll();
-    void sigWrite(qint64, QString);
+    void sigWrite(QString, QString);
     void sigConnect(QString, quint16);
     void sigConnectSOCKS5(QString, quint16);
     void sigDisconnect(qint64);
-    void sigOutputDialog(qint64 id);
+    void sigOutputDialog(QString);
     void sigCloseDialog();
     void sigRunTor();
     void sigSpecifyPortForListening(quint16);
