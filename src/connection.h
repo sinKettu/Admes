@@ -67,8 +67,8 @@ private:
     QMap<qint64, QByteArray> peersSessionKeys;
     QMap<qint64, QString> IDPeer;
 
-    QTcpServer *server = nullptr;
-    QProcess *tor = nullptr;
+    QTcpServer *server;
+    QProcess *tor;
     Chat *chat = nullptr;
     quint16 serverPort = 4242;
     quint16 socks5Port = 9050;

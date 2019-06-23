@@ -8,8 +8,8 @@ Control::Control(QObject *parent) : QObject(parent)
 
     connect(thread, SIGNAL(started()),                  &connection, SLOT(slotConnectionExec()));
     connect(thread, SIGNAL(finished()),                 thread,      SLOT(deleteLater()));
-    connect(thread, SIGNAL(finished()),                 this,        SLOT(deleteLater()));
-    connect(&connection, SIGNAL(sigTerminateThread()),  thread,      SLOT(quit()));
+    //connect(thread, SIGNAL(finished()),                 this,        SLOT(deleteLater()));
+    connect(&connection, SIGNAL(sigTerminateThread()),  thread,      SLOT(quit()), Qt::DirectConnection);
 
     connect(this, SIGNAL(sigStartServer()),             &connection, SLOT(slotStartServer()));
     connect(this, SIGNAL(sigStopAll()),                 &connection, SLOT(slotStopAll()));
@@ -43,6 +43,7 @@ void Control::StartServer()
 void Control::StopAll()
 {
     emit sigStopAll();
+    while (thread->isRunning());
     emit sigCloseProgram();
 }
 

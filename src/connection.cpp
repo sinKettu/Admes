@@ -19,11 +19,11 @@ void Connection::slotConnectionExec()
 
 Connection::~Connection()
 {
-    if (server != nullptr)
+   /* if (server != nullptr)
     {
         server->close();
         delete server;
-    }
+    }*/
     if (tor != nullptr && tor->state() == QProcess::Running)
     {
         tor->close();
@@ -40,7 +40,28 @@ Connection::~Connection()
 
 void Connection::slotStopAll()
 {
-    this->~Connection();
+    if (server != nullptr)
+    {
+        server->close();
+        delete server;
+    }
+
+    if (tor != nullptr && tor->state() == QProcess::Running)
+    {
+        tor->close();
+    }
+
+    QMap<qint64, QTcpSocket*>::iterator iter;
+    for (iter = WaitingForConfirmation.begin(); iter != WaitingForConfirmation.end(); iter++)
+        iter.value()->disconnect();
+
+    for (iter = socketMap.begin(); iter != socketMap.end(); iter++)
+        iter.value()->disconnect();
+
+    WaitingForConfirmation.clear();
+    socketMap.clear();
+    delete chat;
+
     emit sigTerminateThread();
 }
 
