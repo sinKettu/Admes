@@ -575,8 +575,6 @@ void Connection::slotRead()
         }
 
         QString login;
-        IDPeer.insert(id, login);
-        peerID.insert(login, id);
         int res = CheckPeer(id, message.mid(3), login);
         if (res == -1)
         {
@@ -596,10 +594,15 @@ void Connection::slotRead()
             else
             {
                 std::cout << prefix << "Known peer\n";
+                IDPeer.insert(id, login);
+                peerID.insert(login, id);
             }
         }
         else if (res == 1)
         {
+            IDPeer.insert(id, login);
+            peerID.insert(login, id);
+            QString tmp = IDPeer[id];
             std::cout << prefix << "Unknown peer " + login.toStdString() + "\n";
             std::cout << prefix << "If you trust this peer, type '/accept ";
             std::cout << QString::number(id).toStdString() << "'\n";
@@ -650,12 +653,16 @@ void Connection::slotRead()
             else
             {
                 std::cout << prefix << "Known peer\n";
+                IDPeer.insert(id, login);
                 peerID.insert(login, id);
             }
         }
         else if (res == 1)
         {
-            std::cout << prefix << "Unknown peer\n";
+            IDPeer.insert(id, login);
+            peerID.insert(login, id);
+            QString tmp = IDPeer[id];
+            std::cout << prefix << "Unknown peer " + login.toStdString() + "\n";
             std::cout << prefix << "If you trust this peer, type '/accept ";
             std::cout << QString::number(id).toStdString() << "'\n";
             std::cout << prefix << "In another case type '/refuse ";
@@ -968,7 +975,14 @@ void Connection::slotAccept(qint64 id)
 
     if (connectionStage[id] == 2)
     {
-        NewPeer(IDPeer[id], pukMap[id]);
+        if (!NewPeer(IDPeer[id], pukMap[id]))
+        {
+            std::cout << prefix << "Couldn't add " + IDPeer[id].toStdString() + " to known peers\n";
+        }
+        else
+        {
+            std::cout << prefix << IDPeer[id].toStdString() << " was added to known peers\n";
+        }
         // отправить зашифрованный и подписанный логин
         SendLogin(WaitingForConfirmation[id], id);
         connectionStage[id]++; // become 3
