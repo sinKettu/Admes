@@ -8,7 +8,7 @@
 
 void help()
 {
-    std::cout << "-==================================================== H E L P ===================================================-\n\n";
+    std::cout << "-====== H E L P ======-\n\n";
     std::cout << "Welcome to 'admes', asynchronous P2P private messenger!\n";
     std::cout << "The program still is under development, please remember this\n\n";
     std::cout << "You can control (give commands) the program with placing '/' at the beginning of input line\n";
@@ -53,7 +53,7 @@ void help()
     std::cout << "/exit -- close the program\n";
 
     std::cout << "\nThanks for using 'admes'\n";
-    std::cout << "\n-================================================================================================================-\n";
+    std::cout << "\n-=====================-\n";
 
 }
 

@@ -6,15 +6,12 @@ CONFIG -= app_bundle
 
 DEFINES += QT_DEPRECATED_WARNINGS
 
-win32 
-{
+win32{
     INCLUDEPATH += $$PWD/libs/mpir
     HEADERS += $$PWD/libs/mpir/mpir.h
     LIBS += $$PWD/libs/mpir/mpir.dll
     LIBS += libws2_32
-}
-else
-{
+}else{
     LIBS += -lmpir
 }
 
