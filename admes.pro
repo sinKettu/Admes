@@ -31,6 +31,7 @@ SOURCES += \
         src/connection.cpp \
         src/chat.cpp \
         src/common.cpp \
+        src/account.cpp \
             src/crypto/AES.cpp \
             src/crypto/ECC.cpp \
             src/crypto/prng.cpp \
@@ -41,6 +42,7 @@ HEADERS += \
     src/connection.h \
     src/chat.h \
     src/common.h \
+    src/account.h \
 	    src/crypto/AES.h \
 	    src/crypto/ECC.h \
 	    src/crypto/prng.h \
