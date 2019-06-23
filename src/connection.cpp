@@ -70,7 +70,7 @@ void Connection::slotRunTor()
     connect(tor, SIGNAL(readyReadStandardError()), this, SLOT(slotReadTorOutput()));
     tor->setProgram(tor_path);
     QDir tor_conf("./config");
-    if (!tor_conf.exists() && !QDir::current().mkdir(tor_conf.path()))
+    if (!tor_conf.exists() && !QDir().mkdir(tor_conf.path())) // !!!
     {
         std::cout << prefix << "Can't create " << tor_conf.absolutePath().toStdString() << "\n";
         return;

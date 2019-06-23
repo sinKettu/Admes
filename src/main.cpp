@@ -1,6 +1,7 @@
 #include <QObject>
 #include <QCoreApplication>
 #include <QTextStream>
+#include <QDir>
 #include "control.h"
 #include "common.h"
 #include "account.h"
@@ -85,6 +86,20 @@ int main(int argc, char *argv[])
     }
 
 #endif
+
+    QDir dir("./config");
+    if(!dir.exists() && !QDir().mkdir(dir.path()))
+    {
+        std::cout << prefix << "Couldn't find or create config directory!\n";
+        run = false;
+    }
+
+    dir = QDir("./config/users");
+    if(!dir.exists() && !QDir().mkdir(dir.path()))
+    {
+        std::cout << prefix << "Couldn't find or create user directory!\n";
+        run = false;
+    }
 
     while (run)
     {
