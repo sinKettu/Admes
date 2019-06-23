@@ -56,6 +56,8 @@ private:
     int CheckPeer(qint64 id, QByteArray data, QString &strLogin);
     bool SendNumber(qint64 id);
     void OpenSession(qint64 id, QTcpSocket *soc, QByteArray message);
+    QByteArray MessagePackaging(QString message, qint64 id);
+    QString MessageExtract(QByteArray data, qint64 id, bool &signature);
 
     QMap<qint64, QTcpSocket *> socketMap;
     QMap<qint64, QTcpSocket *> WaitingForConfirmation;

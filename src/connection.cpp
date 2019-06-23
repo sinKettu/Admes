@@ -148,6 +148,153 @@ void Connection::slotNewConnection()
     connect(tmp, SIGNAL(disconnected()), tmp, SLOT(deleteLater()));
 }
 
+QByteArray Connection::MessagePackaging(QString message, qint64 id)
+{
+    QByteArray result;
+    if (!EPNG_inited())
+    {
+        std::cout << prefix << "EC PRNG wasn't initialized\n";
+        return result;
+    }
+
+    if (!socketMap.contains(id))
+    {
+        std::cout << prefix << "Couldn't find connection '" << id << "'\n";
+        return result;
+    }
+
+    // Get random IV
+    mpz_t mp_iv;
+    mpz_init(mp_iv);
+    EPNG_get(mp_iv);
+    unsigned char *char_iv;
+    unsigned int iv_len;
+    ecc_mpz_to_cstr(mp_iv, &char_iv, iv_len);
+    QByteArray iv = QByteArray(reinterpret_cast<char*>(char_iv), iv_len);
+    
+    // Encrypt message with AES-CBC(session key, iv)
+    QByteArray encryptedMessage = AES_CBC_Encrypt(message.toLocal8Bit(), 
+                                                  peersSessionKeys[id].data(), 
+                                                  peersSessionKeys[id].length(),
+                                                  char_iv);
+    if (encryptedMessage.isEmpty())
+    {
+        std::cout << prefix << "Unknown error\n";
+        mpz_clear(mp_iv);
+        delete[] char_iv;
+        return result;
+    }
+    
+    // Encrypt IV with AES-ECB(session key)
+    QByteArray encryptedIV = AES_ECB_Encrypt(iv, peersSessionKeys[id].data(),
+                                             peersSessionKeys[id].length());
+    if (encryptedIV.isEmpty())
+    {
+        std::cout << prefix << "Unknown error\n";
+        mpz_clear(mp_iv);
+        delete[] char_iv;
+        return result;
+    }
+    
+    // (encrypted-message-last-16-bytes) XOR iv - Integrity control
+    mpz_t tail;
+    mpz_init(tail);
+    int pos = encryptedMessage.length() - 16;
+    ecc_cstr_to_mpz(reinterpret_cast<unsigned char *>(encryptedMessage.data() + pos), 
+                    16, tail);
+    mpz_xor(tail, mp_iv, tail);
+    delete[] char_iv;
+    ecc_mpz_to_cstr(tail, &char_iv, iv_len);
+    
+    QByteArray integrity = QByteArray(reinterpret_cast<char*>(char_iv), iv_len);
+    mpz_clears(mp_iv, tail, NULL);
+    delete[] char_iv;
+
+    // EC signature based on integrity control
+    EllipticCurve *ec = GetEC();
+    Keychain *kc = GetKeys();
+    QByteArray signature = ECC_Sign(ec, kc->PrivateKey, integrity);
+    if (signature.isEmpty())
+    {
+        std::cout << prefix << "Unknown error\n";
+        return result;
+    }
+
+    pos = signature.length();
+    result.append(encryptedIV);
+    result.append(reinterpret_cast<char*>(&pos), 4);
+    result.append(signature);
+    result.append(encryptedMessage);
+
+    return result;
+}
+
+QString Connection::MessageExtract(QByteArray data, qint64 id, bool &signature)
+{
+    QString result;
+    if (!socketMap.contains(id))
+    {
+        std::cout << prefix << "Couldn't find connection '" << id << "'\n";
+        return result;
+    }
+
+    QByteArray encIVBuf = data.mid(0, 16);
+    int tmp = *reinterpret_cast<int*>(data.data() + 16);
+    QByteArray SignBuf = data.mid(20, tmp);
+    QByteArray encMesBuf = data.mid(20 + tmp);
+    if (encIVBuf.length() != 16 || 
+        SignBuf.length() != tmp || 
+        encMesBuf.length() != data.length() - 20 - tmp ||
+        encMesBuf.length() < 16)
+    {
+        std::cout << prefix << "Couldn't parse message\n";
+        return result;
+    }
+
+    // preparations to check signature
+    QByteArray IVBuf = AES_ECB_Decrypt(encIVBuf, peersSessionKeys[id].data(), peersSessionKeys[id].length());
+    tmp = encMesBuf.length() - 16;
+    mpz_t a, b;
+    mpz_inits(a, b, NULL);
+    ecc_cstr_to_mpz(reinterpret_cast<unsigned char *>(IVBuf.data()), 16, a);
+    ecc_cstr_to_mpz(reinterpret_cast<unsigned char *>(encMesBuf.data() + tmp), 16, b);
+    mpz_xor(a, a, b);
+    unsigned char *integrity;
+    unsigned int l;
+    ecc_mpz_to_cstr(a, &integrity, l);
+    QByteArray qinteg = QByteArray(reinterpret_cast<char*>(integrity), l);
+    mpz_clears(a, b, NULL);
+    delete[] integrity;
+
+    EllipticCurve *ec = GetEC();
+    tmp = ECC_Check(ec, pukMap[id], qinteg, SignBuf);
+    if (tmp == -1)
+    {
+        std::cout << "Unknown error\n";
+        return result;
+    }
+
+    signature = static_cast<bool>(tmp);
+    if (!signature)
+    {
+        std::cout << prefix << "Signature failed verification\n";
+        return result;
+    }
+
+    QByteArray message = AES_CBC_Decrypt(encMesBuf, peersSessionKeys[id].data(),
+                                         peersSessionKeys[id].length(),
+                                         reinterpret_cast<unsigned char*>(IVBuf.data()));
+    
+    if (message.isEmpty())
+    {
+        std::cout << prefix << "Unknown error\n";
+        return result;
+    }
+
+    result = QString::fromLocal8Bit(message);
+    return result;
+}
+
 void Connection::BadConnection(qint64 id)
 {
     std::cout << prefix << "connection establishment was failed\n";
