@@ -29,7 +29,7 @@ public slots:
     void slotConnectSOCKS5(QString addr, quint16 port);
     void slotConnectSuccess();
     void slotWrite(QString peerName, QString message);
-    void slotDisconnect(qint64);
+    void slotDisconnect(QString peer);
     void slotDisconnectWarning();
     void slotOutputDialog(QString peer);
     void slotCloseDialog();

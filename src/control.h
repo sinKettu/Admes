@@ -14,7 +14,7 @@ public:
     void Send(QString peerName, QString message);
     void StopAll();
     void ConnectTo(QString adr, quint16 port);
-    void Disconnect(qint64 id);
+    void Disconnect(QString peer);
     void ConnectThroughSOCKS5(QString addr, quint16 port);
     void OutputDialog(QString peer);
     void CloseDialog();
@@ -38,7 +38,7 @@ signals:
     void sigWrite(QString, QString);
     void sigConnect(QString, quint16);
     void sigConnectSOCKS5(QString, quint16);
-    void sigDisconnect(qint64);
+    void sigDisconnect(QString);
     void sigOutputDialog(QString);
     void sigCloseDialog();
     void sigRunTor();

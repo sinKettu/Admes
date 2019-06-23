@@ -827,7 +827,15 @@ void Connection::slotConnectSuccess()
 
 void Connection::slotWrite(QString peerName, QString message)
 {
-    qint64 id = peerID[peerName];
+    qint64 id;
+    if (peerID.contains(peerName))
+        id = peerID[peerName];
+    else
+    {
+        std::cout << prefix << "No connected peer '" << peerName.toStdString() << "' exists\n";
+        return;
+    }
+
     if (socketMap.contains(id))
     {
         QByteArray toWrite = MessagePackaging(message, id);
@@ -850,8 +858,17 @@ void Connection::slotWrite(QString peerName, QString message)
         std::cout << prefix << "No connected peer '" << peerName.toStdString() << "' exists\n";
 }
 
-void Connection::slotDisconnect(qint64 id)
+void Connection::slotDisconnect(QString peer)
 {
+    qint64 id;
+    if (peerID.contains(peer))
+        id = peerID[peer];
+    else
+    {
+        std::cout << prefix << "No such peer connected\n";
+        return;
+    }
+    
     if (socketMap.contains(id))
     {
         socketMap[id]->disconnectFromHost();
@@ -895,7 +912,7 @@ void Connection::slotDisconnect(qint64 id)
         }
     }
     else
-        std::cout << prefix << "No such socket exists\n";
+        std::cout << prefix << "No such peer connected\n";
 }
 
 // FIX DISCONNECTING

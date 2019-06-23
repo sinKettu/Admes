@@ -312,6 +312,19 @@ int main(int argc, char *argv[])
             }
             
         }
+        if (commands.length() == 2 && !commands[0].compare("/remove"))
+        {
+            if (!IsLoggedIn())
+            {
+                std::cout << prefix << "You must log in first\n";
+                continue;
+            }
+
+            RemovePeer(commands[1]);
+            std::cout << prefix << "Done\n";
+            c->Disconnect(commands[1]);
+            continue;
+        }
         if (commands[0].compare("/connect") == 0 && commands.length() >= 3)
         {
             if (!IsLoggedIn())
@@ -342,7 +355,7 @@ int main(int argc, char *argv[])
         }
         if (commands[0].compare("/disconnect") == 0 && commands.length() == 2)
         {
-            c->Disconnect(commands[1].toLongLong());
+            c->Disconnect(commands[1]);
             continue;
         }
         if (commands[0].compare("/chat") == 0 && commands.length() == 2)

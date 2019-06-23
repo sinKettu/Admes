@@ -15,9 +15,9 @@ Control::Control(QObject *parent) : QObject(parent)
     connect(this, SIGNAL(sigStopAll()),                 &connection, SLOT(slotStopAll()));
     connect(this, SIGNAL(sigConnect(QString, quint16)), &connection, SLOT(slotConnect(QString, quint16)));
     connect(this, SIGNAL(sigConnectSOCKS5(QString, quint16)), &connection, SLOT(slotConnectSOCKS5(QString, quint16)));
-    connect(this, SIGNAL(sigWrite(QString, QString)),    &connection, SLOT(slotWrite(QString, QString)));
-    connect(this, SIGNAL(sigDisconnect(qint64)),        &connection, SLOT(slotDisconnect(qint64)));
-    connect(this, SIGNAL(sigOutputDialog(QString)),      &connection, SLOT(slotOutputDialog(QString)));
+    connect(this, SIGNAL(sigWrite(QString, QString)),   &connection, SLOT(slotWrite(QString, QString)));
+    connect(this, SIGNAL(sigDisconnect(QString)),          &connection, SLOT(slotDisconnect(QString)));
+    connect(this, SIGNAL(sigOutputDialog(QString)),     &connection, SLOT(slotOutputDialog(QString)));
     connect(this, SIGNAL(sigCloseDialog()),             &connection, SLOT(slotCloseDialog()));
     connect(this, SIGNAL(sigRunTor()),                  &connection, SLOT(slotRunTor()));
     connect(this, SIGNAL(sigSpecifyPortForListening(quint16)), &connection, SLOT(slotSpecifyPortForListening(quint16)));
@@ -63,9 +63,9 @@ void Control::Send(QString peerName, QString message)
     emit sigWrite(peerName, message);
 }
 
-void Control::Disconnect(qint64 id)
+void Control::Disconnect(QString peer)
 {
-    emit sigDisconnect(id);
+    emit sigDisconnect(peer);
 }
 
 void Control::OutputDialog(QString peer)
