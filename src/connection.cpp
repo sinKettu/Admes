@@ -311,6 +311,7 @@ void Connection::slotRead()
         // Message: |IV|sign_len|sign|message|
         // IV - AES-ECB with session key
         // message - AES-CBC with session key and IV
+        // sign - EC signature
         chat->AddToChat(id, "From", QString::fromLocal8Bit(message));
     }
 
