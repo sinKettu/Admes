@@ -1,0 +1,74 @@
+Admes Cryptography Algorithms Guide.
+
+Used methods:
+- AES-ECB 128bit (192bit and 256 bit are released,
+  but not used);
+- AES-CBC 128bit (192bit and 256 bit are released,
+  but not used);
+- Encryption/Decryption based on ellipric curve cryptography;
+- Making/Checking signature based on ellipric curve cryptography;
+- PRNGa based on ellipric curve cryptography;
+- PRNGb based on time of typing.
+
+PRNGa Algorithm:
+
+Input: elliptic curve parameters, where G is group generator, seed.
+Output: pseudo-random number
+
+1. Q = seed*G
+2. seed := Q y-coordinate
+   result := (Q y-coordinate) XOR (Q x-coordinate)
+3. return result, go to step 1.
+Recoomended to use with G, wich cofactor is 1.
+
+
+User Account Creating Algoritm:
+
+Input: login, password
+Output: Account: {login, password (encrypted), EC public and private keys (encrypted)}
+
+1. seed = login || separator || password;
+2. AES_MasterKey = PRNGa(seed) (used 128bit elliptic curve);
+2. EC_PrivateKey = PRNGb();
+3. EC_PublicKey from EC_PrivateKey;
+4. AES_EncryptedKey = EC_Encrypt(AES_MasterKey, EC_PublicKey);
+5. EC_EncryptedKeys = AES_ECB_Encrypt(EC_PublicKey || EC_PrivateKey, AES_MasterKey);
+6. result := AES_EncryptedKey || EC_EncryptedKeys.
+
+
+Connection Establishment Algorithm:
+
+Client is connection initializer.
+Server is another one.
+ECC is Elliptic Curve Cryptography.
+
+1. Client sends 'admesconnectionrequest' - (step 0)
+   Server receives 'admesconnectionrequest' - (step 100);
+2. Server sends 'admesconnectionresponse' - (step 100)
+   Client receives 'admesconnectionresponse' - (step 0);
+3. Client sends EC_PublicKey(c) - (step 1)
+   Server receives EC_PublicKey(c) - (step 101);
+4. Server sends EC_PublicKey(s) - (step 101);
+   Client receives EC_PublicKey(s) - (step 1);
+5. Client sends his signed name with his encrypted name using ECC - (step 2)
+   Server receives client's signed name with client's encrypted name using ECC - (step 102);
+6. Server sends his signed name with his encrypted name using ECC - (step 102)
+   Client receives server's signed name with server's encrypted name using ECC - (step 102);
+7. Both client and server decide if they know each other and thust for each other
+   (part of step 2/102);
+8. Client sends encrypted and signed random number A, got from PRNGa, using ECC - (step 3)
+   Server receives encrypted and signed random number A - (step 103);
+9. Server sends encrypted and signed random number B, got from PRNGa, using ECC - (step 103)
+    Client receives encrypted and signed random number B - (step 3);
+10. Both clinet and server are authenticated and got SeesionKey is A XOR B;
+
+Message Format:
+
+Message: | IV | SIGNATURE_LENGTH | SIGNATURE | ENCRYPTED_MESSAGE |
+
+Sender get pseudo-random IV from EPNGa and encrypt message with AES-CBC using SessionKey;
+Then, Sender perform XOR between IV and last 128bit-block of encrypted message
+and use this value as integrity control. Integrity control is signed, using
+EC_PrivateKey of sender.
+Finally, Sender encrypt IV with AES-ECB using SessionKey.
+
