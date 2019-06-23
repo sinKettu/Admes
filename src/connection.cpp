@@ -232,6 +232,7 @@ QByteArray Connection::MessagePackaging(QString message, qint64 id)
 QString Connection::MessageExtract(QByteArray data, qint64 id, bool &signature)
 {
     QString result;
+    signature = false;
     if (!socketMap.contains(id))
     {
         std::cout << prefix << "Couldn't find connection '" << id << "'\n";
@@ -311,6 +312,10 @@ void Connection::BadConnection(qint64 id)
     if (pukMap.contains(id))
     {
         pukMap.remove(id);
+    }
+    if (peersSessionKeys.contains(id))
+    {
+        peersSessionKeys.remove(id);
     }
 }
 
@@ -459,7 +464,15 @@ void Connection::slotRead()
         // IV - AES-ECB with session key
         // message - AES-CBC with session key and IV
         // sign - EC signature
-        chat->AddToChat(id, "From", QString::fromLocal8Bit(message));
+        bool signature;
+        QString mes = MessageExtract(message, id, signature);
+        if (!signature || mes.isEmpty()) 
+            return;
+        else
+        {
+            chat->AddToChat(id, "From", mes);
+            return;
+        }
     }
 
     if (connectionStage.contains(id) && connectionStage[id] == 0 && message == connectReq)
@@ -779,10 +792,16 @@ void Connection::slotWrite(qint64 id, QString message)
 {
     if (socketMap.contains(id))
     {
+        QByteArray toWrite = MessagePackaging(message, id);
+        if (toWrite.isEmpty())
+        {
+            std::cout << prefix << "Packaging failure\n";
+            return;
+        }
         // Three attempts to send
-        if (socketMap[id]->write(message.toLocal8Bit()) == message.length() ||
-            socketMap[id]->write(message.toLocal8Bit()) == message.length() ||
-            socketMap[id]->write(message.toLocal8Bit()) == message.length() )
+        if (socketMap[id]->write(toWrite) == toWrite.length() ||
+            socketMap[id]->write(toWrite) == toWrite.length() ||
+            socketMap[id]->write(toWrite) == toWrite.length())
         {
             chat->AddToChat(id, "To", message);
         }
@@ -796,9 +815,35 @@ void Connection::slotWrite(qint64 id, QString message)
 void Connection::slotDisconnect(qint64 id)
 {
     if (socketMap.contains(id))
+    {
         socketMap[id]->disconnectFromHost();
+        if (pukMap.contains(id))
+        {
+            pukMap.remove(id);
+        }
+        if (peersSessionKeys.contains(id))
+        {
+            peersSessionKeys.remove(id);
+        }
+    }
     else if (WaitingForConfirmation.contains(id))
+    {
         WaitingForConfirmation[id]->disconnectFromHost();
+        WaitingForConfirmation.remove(id);
+
+        if (connectionStage.contains(id))
+        {
+            connectionStage.remove(id);
+        }
+        if (pukMap.contains(id))
+        {
+            pukMap.remove(id);
+        }
+        if (peersSessionKeys.contains(id))
+        {
+            peersSessionKeys.remove(id);
+        }
+    }
     else
         std::cout << prefix << "No such socket exists\n";
 }
