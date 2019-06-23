@@ -442,7 +442,7 @@ QByteArray AES_ECB_Encrypt(QByteArray buffer, char *key, unsigned int key_len)
         roundKeys[i] = new byte[4];
     KeyExpansion(reinterpret_cast<unsigned char*>(key), 4, nr, nk, roundKeys);
 
-    for (uint32_t offset = 0; offset < res_len; offset += 16)
+    for (unsigned int offset = 0; offset < res_len; offset += 16)
         _cipher(char_res + offset, nr, nk);
 
     for (byte i = 0; i < 4 * (nr + 1); i++)
@@ -490,7 +490,7 @@ QByteArray AES_ECB_Decrypt(QByteArray encrypted, char *key, unsigned key_len)
         roundKeys[i] = new byte[4];
     KeyExpansion(reinterpret_cast<unsigned char*>(key), 4, nr, nk, roundKeys);
 
-    for (unsigned char offset = 0; offset < encrypted.length(); offset += 16)
+    for (unsigned int offset = 0; offset < encrypted.length(); offset += 16)
         _invCipher(char_dec + offset, nr, nk);
 
     for (byte i = 0; i < 4 * (nr + 1); i++)
@@ -609,7 +609,7 @@ QByteArray AES_CBC_Decrypt(QByteArray encrypted, char *key, unsigned int key_len
 
     _invCipher(char_dec, nr, nk);
     xorWords(char_dec, iv, 16);
-    for (unsigned char offset = 16; offset < encrypted.length(); offset += 16)
+    for (unsigned int offset = 16; offset < encrypted.length(); offset += 16)
     {
         _invCipher(char_dec + offset, nr, nk);
         xorWords(char_dec + offset, reinterpret_cast<unsigned char *>(encrypted.data()) + offset - 16, 16);
