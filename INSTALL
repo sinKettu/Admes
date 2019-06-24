@@ -1,4 +1,4 @@
-Admes Installing Guide.
+Admes Installation Guide.
 
 
 -= R E Q U I R E D =-
@@ -7,36 +7,53 @@ Admes Installing Guide.
 Regardless of the system used, you have to had some
 applications and libraries pre-installed (pre-compiled).
 
-- Qt
-Qt is framework, which is basis for 'admes'.
-Only Qt5!
-In Linux, you have two ways:
-first, you can download Community Qt Framework from
-official site and install it with QtCreator, which
-can be used to compile 'admes';
-second, you can use 'apt' or another package manager
-to install Qt, all you need is libqt5core5a, 
-libqt5network5, qt5-qmake, qt5-qmake-bin,
-qt5-qmake, qt5-default:
+Linux easy-to-go installation scripts in the end.
 
-    $ sudo apt install libqt5core5a libqt5network5 qt5-qmake
+--- Qt ---
+
+Qt is framework, which is basis for 'admes'.
+Qt5 is required!
+In Linux, you have two ways:
+first, you can download Qt Framework from
+official site;
+second, you can use 'apt' or another package manager
+to install Qt;
+All you need is libqt5core5a, libqt5network5, qt5-qmake, 
+qt5-qmake-bin, qt5-qmake, qt5-default:
+
+    $ sudo apt install libqt5core5a libqt5network5 qt5-qmake \
     qt5-qmake-bin qt5-qmake qt5-default
 
-In Windows you have to download Community Qt Framework
+In Windows you have to download Qt Framework
 from official site.
 
-- TOR
+--- TOR ---
+
 TOR is used to connect through NAT.
 In Linux, you can use 'apt' or another package manager
 to install 'tor':
 
-    $ sudo apt isntall tor
+    $ sudo apt install tor
 
 On Windows you must use TOR Expert Bundle, which can be
 downloaded using the following link:
-https://www.torproject.org/ru/download/tor/
+https://www.torproject.org/download/tor/
 
-- MPIR
+--- GMP ---
+
+GMP provides capability to work with long numbers.
+Building with GMP is available only in Linux.
+In Windows, please, use MPIR.
+You can use 'apt' or another package manager to
+install GMP:
+
+    $ sudo apt install libgmp-dev
+
+--- MPIR ---
+
+(!) See MPIR documentation for details.
+MPIR can be used instead of GMP, but it is more challenging to
+compile and install. On the other hand, it works faster!
 MPIR provides capability to work with long numbers. It is
 required for such asymmetric cryptography algorithms as
 encryption and digital signature algorithms based on
@@ -55,7 +72,14 @@ Then:
 
     $ cd path/to/mpir3.0.0
     $ ./configure
-    $ make && make install
+    $ make
+    $ sudo make install
+
+(!) If you have no 'configure' file, please, see MPIR's installation guide.
+You have to configure qmake to use admes with MPIR instead of GMP.
+When you build admes, enter:
+
+    qmake CONFIG+=MPIR_H ../admes.pro
 
 In Windows you also have to compile MPIR. First, you have to
 download 'yasm' (see link above). There are pre-compiled
@@ -63,7 +87,6 @@ binaries for both Win64 and Win32, but admes was configured to
 be compiled for Win32 (for now). Be careful, you need 'vsyasm.exe', not 
 'yasm.exe'. Download and extract all files to 'C:\Program Files\yasm'.
 Then, you can use Microsoft Visual Studio to compile MPIR.
-See MPIR documentation for details.
 You need compile 'mpir.dll', 'mpir.lib', 'mpir.h' (all from 
 one project) and put them to 'path\to\admes\libs\mpir'.
 There are already the files you need, but since MPIR is 
@@ -115,3 +138,18 @@ QtCreator:
     Configure Qt Kit
     Choose 'release'
     build
+
+
+-= EASY-TO-GO =-
+
+
+Firstly, got to admes directory.
+
+sudo apt update
+sudo apt install libqt5core5a libqt5network5 qt5-qmake \
+qt5-qmake-bin qt5-qmake qt5-default libgmp-dev tor torsocks
+mkdir build && cd build
+qmake ../admes.pro
+make
+
+That's it!
