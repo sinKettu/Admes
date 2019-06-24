@@ -135,6 +135,8 @@ int main(int argc, char *argv[])
                 continue;
             }
             
+            std::cout << prefix << "The password will not be hidden!\n";
+            std::cout << prefix << "It will be fixed soon\n";
             std::cout << "Password: ";
             QString password = qin.readLine();
             if (password.length() == 0)
@@ -164,6 +166,8 @@ int main(int argc, char *argv[])
                 continue;
             }
             
+            std::cout << prefix << "The password will not be hidden!\n";
+            std::cout << prefix << "It will be fixed soon\n";
             std::cout << "Password: ";
             QString password = qin.readLine();
             if (password.length() == 0)
