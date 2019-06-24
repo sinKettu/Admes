@@ -1,12 +1,16 @@
 #ifndef OCCULUS_PRNG_H
 #define OCCULUS_PRNG_H
 
-#include "EC_common.h"
 #if defined(_WIN32) || defined(_WIN64)
     #include "libs/mpir/mpir.h"
-#else
+#elif MPIR_H
     #include <mpir.h>
+#else
+    #include <gmp.h>
 #endif
+
+#include "EC_common.h"
+
 //
 // PRNG based on ECC
 //

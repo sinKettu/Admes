@@ -12,7 +12,12 @@ win32{
     LIBS += $$PWD/libs/mpir/mpir.dll
     LIBS += libws2_32
 }else{
-    LIBS += -lmpir
+    MPIR_H{
+        DEFINES += MPIR_H
+        LIBS += -lmpir
+    } else {
+        LIBS += -lgmp
+    }
 }
 
 SOURCES += \

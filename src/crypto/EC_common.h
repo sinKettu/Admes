@@ -1,4 +1,11 @@
-#include <mpir.h>
+#if defined(_WIN32) || defined(_WIN64)
+    #include "libs/mpir/mpir.h"
+#elif MPIR_H
+    #include <mpir.h>
+#else
+    #include <gmp.h>
+#endif
+
 #include <QByteArray>
 
 #define SECP128R1 0
