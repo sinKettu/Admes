@@ -18,7 +18,7 @@ Asynchronous P2P connector (messenger) based on Qt5.
 - ...
 
 ## Build and compile:
-You need: 
+You need:
 - Qt5 Framework (>= 10.0);
 - Tor (Tor Expert Bundle);
 - GMP (>=2) or MPIR (=3.0.0).
