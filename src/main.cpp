@@ -389,7 +389,7 @@ int main(int argc, char *argv[])
         }
         if (!commands[0].compare("/version") && commands.length() == 1)
         {
-            std::cout << prefix << "Version: 1.0\n";
+            std::cout << prefix << "Version: 1.1\n";
             continue;
         }
         if (!commands[0].compare("/exit") && commands.length() == 1)
