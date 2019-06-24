@@ -10,14 +10,14 @@ Asynchronous P2P connector (messenger) based on Qt5.
 - Unique pair of public and private ECC keys to verify user identity (see 'CRYPTO' for details);
 - Cross-platform;
 
-## Comming program features:
+## Comming program features:    
 - Working using STUNT (to connect over NAT);
 - UI (ncurses);
 - GUI (QT Widget);
 - Secure exporting of dialogs;
 - ...
 
-## Build and compile:
+## Build and compile: 
 You need:
 - Qt5 Framework (>= 10.0);
 - Tor (Tor Expert Bundle);
