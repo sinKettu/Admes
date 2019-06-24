@@ -73,7 +73,7 @@ int main(int argc, char *argv[])
 #if defined (_WIN32) || defined(_WIN32)
 
     std::cout << prefix << "It seems like you use Windows\n";
-    std::cout << prefix << "Please, specify a path to the Tor. To exit type '/exit'\n";
+    std::cout << prefix << "Please, specify a path to the 'tor.exe'. To exit type '/exit'\n";
     run = false;
     while (true)
     {
