@@ -35,4 +35,7 @@ Please, see 'INSTALL' for details.
 
 To get help enter "/help" in the program.
 
+## The source code is provided for informational purposes!
+Use at your own risk. The author does not bear any responsibility.
+
 ## Copyright © Andrey Ivanov, 2019.
