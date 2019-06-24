@@ -12,7 +12,7 @@ QMap<QString, Point> knownPeers;
 
 QByteArray UserDataToAESKey(QString login, QString password)
 {
-    QString tmp = login + password;
+    QString tmp = login + '\xff' + password;
     if (EPNG_inited())
     {
         mpz_t saved;
