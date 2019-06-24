@@ -143,7 +143,7 @@ QtCreator:
 -= EASY-TO-GO =-
 
 
-Firstly, got to admes directory.
+Firstly, go to admes directory.
 
 sudo apt update
 sudo apt install libqt5core5a libqt5network5 qt5-qmake \
