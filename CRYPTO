@@ -64,7 +64,7 @@ ECC is Elliptic Curve Cryptography.
 
 Message Format:
 
-Message: | IV | SIGNATURE_LENGTH | SIGNATURE | ENCRYPTED_MESSAGE |
+Message: | ENCRYPTED_IV | SIGNATURE_LENGTH | SIGNATURE | ENCRYPTED_MESSAGE |
 
 Sender get pseudo-random IV from EPNGa and encrypt message with AES-CBC using SessionKey;
 Then, Sender perform XOR between IV and last 128bit-block of encrypted message
